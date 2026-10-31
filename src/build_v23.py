@@ -14,7 +14,6 @@ if not os.path.isdir(OUT_DIR):
 SRC = os.path.join(BASE_DIR, 'base', 'eva驾驶员终端_v2.2.html')
 DST = os.path.join(OUT_DIR, 'eva驾驶员终端_v2.3.html')
 ITEMS_FILE = os.path.join(BASE_DIR, 'mart_items_365.txt')
-
 items_txt = io.open(ITEMS_FILE, encoding='utf-8').read()
 # 统计每个分类的真实条目数
 cnt = collections.OrderDict() if False else collections.OrderedDict()
@@ -1795,13 +1794,13 @@ _DT_CSS = """
 .dtw-big{font-family:'Courier New',monospace;font-size:25px;font-weight:700;color:#fff;line-height:1.15;margin-top:2px}
 .dtw-note{font-size:10px;color:rgba(255,255,255,.80);line-height:1.5;margin-top:3px;min-height:30px;
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-#iconGrid{flex:1 1 auto;overflow-y:auto;align-content:start;gap:8px;padding:9px 12px 80px}
+#iconGrid{flex:1 1 auto;overflow-y:auto;align-content:space-evenly;gap:8px;padding:10px 12px 96px}
 #iconGrid>#iconGrid{scrollbar-width:none}
 #iconGrid::-webkit-scrollbar{display:none;width:0}
-#iconGrid .aicon{padding:10px 3px 7px;border-radius:12px;background:rgba(8,2,3,.74)}
-#iconGrid .aicon .gl{font-size:22px}
-#iconGrid .aicon .no2{font-size:7px;margin-top:0}
-#iconGrid .aicon .lb{font-size:10px;margin-top:2px;letter-spacing:.05em}
+#iconGrid .aicon{padding:8px 3px 6px;border-radius:11px;background:rgba(8,2,3,.74)}
+#iconGrid .aicon .gl{font-size:19px}
+#iconGrid .aicon .no2{font-size:6.5px;margin-top:0}
+#iconGrid .aicon .lb{font-size:9.5px;margin-top:1px;letter-spacing:.04em}
 #dtDock{position:absolute;left:0;right:0;bottom:0;z-index:6;display:grid;
   grid-template-columns:repeat(4,1fr);gap:7px;padding:14px 12px 15px;
   background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.80) 42%)}
@@ -1817,7 +1816,7 @@ _DT_CSS = """
   .dtw{padding:8px 10px;border-radius:11px}
   .dtw-time{font-size:36px}
   .dtw-row{gap:6px}
-  #iconGrid{gap:7px;padding:8px 10px 78px}
+  #iconGrid{gap:9px;padding:9px 10px 94px}
   #dtDock{gap:6px;padding:12px 10px 13px}
 }
 """

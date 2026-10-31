@@ -1,5 +1,5 @@
 /* EVA 驾驶员终端 ▸ Service Worker：全量缓存，装完可离线 */
-var CACHE = 'eva-terminal-v14';
+var CACHE = 'eva-terminal-v15';
 /* 解析 sharecode：有则拼查询串，无则空串（GitHub Pages 这类无门禁环境） */
 var _scm = self.location.search.match(/sharecode=([A-Za-z0-9]+)/);
 var SC = _scm ? ('?sharecode=' + _scm[1]) : '';
