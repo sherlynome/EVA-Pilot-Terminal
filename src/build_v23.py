@@ -1921,5 +1921,28 @@ must("""    var h = '<div class="chips" id="nbTabs">';""",
      """    var h = '<div class="chips nbTabs" id="nbTabs">';""")
 print('== notebook: 資料庫 11 分頁已注入')
 
+# ---------- 合规：APP-02 由「占卜」改为「表決」 ----------
+# 原作 MAGI 本为三贤者表决系统；且 1024 造物挑战明确禁止占卜/算命/运势类功能。
+_a = s.count('MAGI占卜'); _b = s.count('MAGI 占卜')
+assert _a == 2 and _b == 2, '占卜锚点数量异常: %d / %d' % (_a, _b)
+s = s.replace('MAGI占卜', 'MAGI表決')
+s = s.replace('MAGI 占卜', 'MAGI 表決')
+_g = '<span class="gl" style="color:#33FF66">占</span>'
+assert s.count(_g) == 1, 'APP-02 字形锚点不唯一'
+s = s.replace(_g, '<span class="gl" style="color:#33FF66">賢</span>')
+
+# 文案也从「问卜」语境挪到「表决」语境，避免被当成求签类功能
+_rep = [
+    ('\u25b8 问题', '\u25b8 議題'),
+    ('输入想问 MAGI 的问题', '輸入待表決議題'),
+    ('询问 MAGI', '提交表決'),
+]
+for _a, _b in _rep:
+    assert s.count(_a) == 1, 'MAGI 文案锚点不唯一: %s (%d)' % (_a, s.count(_a))
+    s = s.replace(_a, _b)
+assert s.count('周末补班正常吗') == 3, '默认议题锚点数量异常'
+s = s.replace('周末补班正常吗', '是否承認目標為使徒')
+print('== 合规: MAGI 占卜 -> 表決')
+
 io.open(DST, 'w', encoding='utf-8').write(s)
 print('written -> %s (%d bytes, was %d)' % (DST, len(s), orig_len))

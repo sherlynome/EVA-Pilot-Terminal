@@ -395,7 +395,7 @@ button,.chip,.foldbar{transition:transform .08s ease, filter .08s ease}
     </div>
     <div id="iconGrid">
       <button class="aicon" data-app="alert" style="border-color:#F5C400"><span class="gl" style="color:#F5C400">警</span><span class="no2">APP-01</span><span class="lb">使徒警报</span></button>
-      <button class="aicon" data-app="magi" style="border-color:#33FF66"><span class="gl" style="color:#33FF66">占</span><span class="no2">APP-02</span><span class="lb">MAGI占卜</span></button>
+      <button class="aicon" data-app="magi" style="border-color:#33FF66"><span class="gl" style="color:#33FF66">賢</span><span class="no2">APP-02</span><span class="lb">MAGI表決</span></button>
       <button class="aicon" data-app="title"><span class="gl">題</span><span class="no2">APP-03</span><span class="lb">标题字卡</span></button>
       <button class="aicon" data-app="license" style="border-color:#D42027"><span class="gl" style="color:#D42027">証</span><span class="no2">APP-04</span><span class="lb">ID CARD</span></button>
       <button class="aicon" data-app="atfield" style="border-color:#FF6A2B"><span class="gl" style="color:#FF6A2B">場</span><span class="no2">APP-05</span><span class="lb">AT力场</span></button>
@@ -438,14 +438,14 @@ button,.chip,.foldbar{transition:transform .08s ease, filter .08s ease}
       </div>
     </div>
 
-    <!-- APP-02 MAGI 占卜 -->
+    <!-- APP-02 MAGI 表決 -->
     <div class="panel" id="panel-magi">
-      <label class="fl">▸ 问题</label>
+      <label class="fl">▸ 議題</label>
       <div class="irow">
-        <input class="txt" id="magiQ" maxlength="20" value="周末补班正常吗" placeholder="输入想问 MAGI 的问题">
+        <input class="txt" id="magiQ" maxlength="20" value="是否承認目標為使徒" placeholder="輸入待表決議題">
       </div>
       <div class="btnrow">
-        <button class="mainbtn" id="askBtn">询问 MAGI</button>
+        <button class="mainbtn" id="askBtn">提交表決</button>
       </div>
       <div class="btnrow">
         <button class="mainbtn ghostbtn" id="magiPng" disabled>保存结果</button>
@@ -1162,7 +1162,7 @@ var alertApp = (function(){
   function curText(){
     var v = val('alertTxt');
     if (v){ return v; }
-    return (mode === 'C' || mode === 'LOOP') ? '周末补班正常吗' : '周一接近中';
+    return (mode === 'C' || mode === 'LOOP') ? '是否承認目標為使徒' : '周一接近中';
   }
   function curLoc(){ return val('alertLoc') || '第三新東京市'; }
   function drawBottomBar(W2, H2, p){
@@ -1412,7 +1412,7 @@ var alertApp = (function(){
 })();
 
 /* ================================================================
-   APP-02 MAGI 占卜
+   APP-02 MAGI 表決
    ================================================================ */
 var magiApp = (function(){
   var W = 1080, H = 1350;
@@ -1434,7 +1434,7 @@ var magiApp = (function(){
     S.code = 'MG-' + rand(1000, 9999);
     S.t = timeStrings().cd;
   }
-  function curQ(){ return val('magiQ') || '周末补班正常吗'; }
+  function curQ(){ return val('magiQ') || '是否承認目標為使徒'; }
   function drawNetwork(now){
     if (state === 'idle'){ return; }
     var vis = Math.min(1, (now - spinStart) / 600);
@@ -4599,7 +4599,7 @@ window.EVA.showSavePreview = showSavePreview;
 })();
 /* 登记内置 9 个 APP（图标/参数板已在 HTML 中，registerApp 会自动跳过创建） */
 registerApp({ id:'alert', glyph:'警', no:'APP-01', label:'使徒警报', color:'#33FF66' }, alertApp);
-registerApp({ id:'magi', glyph:'賢', no:'APP-02', label:'MAGI占卜', color:'#5A8CF0' }, magiApp);
+registerApp({ id:'magi', glyph:'賢', no:'APP-02', label:'MAGI表決', color:'#5A8CF0' }, magiApp);
 registerApp({ id:'title', glyph:'題', no:'APP-03', label:'标题字卡', color:'#888' }, titleApp);
 registerApp({ id:'license', glyph:'証', no:'APP-04', label:'ID CARD', color:'#D42027' }, licenseApp);
 registerApp({ id:'atfield', glyph:'場', no:'APP-05', label:'AT力场', color:'#FF6A2B' }, atfieldApp);
