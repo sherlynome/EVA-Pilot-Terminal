@@ -1,0 +1,11 @@
+# 构建中间产物（可由 src/ 下的源码重新生成）
+src/build/
+
+# Python
+__pycache__/
+*.py[cod]
+
+# 系统杂物
+.DS_Store
+Thumbs.db
+desktop.ini

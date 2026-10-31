@@ -1,0 +1,3655 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>新适格者终端</title>
+
+<link rel="preconnect" href="https://fonts.loli.net" crossorigin>
+<link rel="preconnect" href="https://gstatic.loli.net" crossorigin>
+<link rel="stylesheet" href="https://fonts.loli.net/css2?family=Shippori+Mincho:wght@800&family=Noto+Serif+SC:wght@900&display=swap">
+
+<script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js"></script>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{
+  background:#0F0F0F;color:#fff;
+  font-family:'Shippori Mincho','Noto Serif SC','Songti SC','STSong','SimSun','Yu Mincho','Hiragino Mincho ProN',serif;
+  min-height:100vh;
+}
+.app{max-width:460px;margin:0 auto;padding:16px 16px 48px}
+header{text-align:center;padding:6px 0 12px}
+h1{font-size:22px;font-weight:900;letter-spacing:.3em;text-indent:.3em}
+.sub{font-family:'Courier New',monospace;font-size:11px;color:#6E6E6E;letter-spacing:.45em;margin-top:4px}
+#statusbar{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  border:1px solid #333;background:#000;
+  padding:7px 12px;font-family:'Courier New',monospace;font-size:12px;
+}
+#sbClock{color:#33FF66;letter-spacing:.1em}
+#sbGreet{color:#D42027;font-weight:700}
+#sbSync{color:#6E6E6E}
+#sbLv{color:#F5C400;font-weight:700}
+#sbLamp{margin-left:auto;width:10px;height:10px;border-radius:50%;background:#D42027;box-shadow:0 0 8px #D42027;animation:lamp 1s steps(2,start) infinite}
+@keyframes lamp{50%{background:#4a0d10;box-shadow:none}}
+/* ============ 桌面（EVA 红箱复刻）【修复①：aspect-ratio 9/14 + 贴纸对表】 ============ */
+#desktop{position:relative;aspect-ratio:9/14;border-radius:10px;overflow:hidden;margin-top:12px;
+  background:
+  radial-gradient(ellipse 70% 42% at 52% 58%, rgba(255,130,35,.5), rgba(230,70,25,.15) 55%, transparent 72%),
+  linear-gradient(155deg,#9c1116 0%,#c0201c 38%,#d94f22 62%,#7c0d12 100%);}
+#desktop::after{content:'';position:absolute;inset:0;background-image:radial-gradient(rgba(0,0,0,.3) 1px,transparent 1.6px);background-size:5px 5px;opacity:.22;pointer-events:none;z-index:3}
+/* [预留位] 桌面自定义背景：deskBgImg（图到货后由 JS 注入，铺满覆盖渐变） */
+#deskBg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none;z-index:0}
+.dt-art{position:absolute;inset:0;pointer-events:none;font-family:'Times New Roman','Georgia',serif;z-index:1}
+.dt-logo{position:absolute;top:1.5%;left:0;right:0;text-align:center;font-family:'Arial Black',sans-serif;font-weight:900;font-size:28px;color:#0A0303;transform:skewX(-10deg);letter-spacing:2px}
+.dt-nervlogo{position:absolute;bottom:7.5%;left:50%;transform:translateX(-50%);width:58%;opacity:.96;z-index:1;filter:drop-shadow(0 2px 8px rgba(0,0,0,.28))}
+.dt-rain{position:absolute;top:11%;left:8%;font-size:36px;color:#111;font-weight:900}
+.dt-nga{position:absolute;top:17%;left:8%;font-size:20px;line-height:1.2;color:#fff;font-weight:700}
+.dt-ep{position:absolute;top:30.5%;left:8%;font-size:12px;color:#fff;font-family:'Courier New',monospace;font-weight:700;letter-spacing:.15em}
+.dt-love{position:absolute;top:33.5%;left:36%;font-size:19px;color:#111;font-weight:900}
+.dt-nerv{position:absolute;top:41%;left:8%;font-size:26px;line-height:1.15;color:#fff;font-weight:900;font-family:'Arial Black',sans-serif;letter-spacing:4px}
+.dt-num{position:absolute;top:50%;left:7%;font-size:96px;color:#fff;font-weight:900;font-family:'Arial Black',sans-serif;line-height:1}
+.dt-jp{position:absolute;top:43%;left:44%;right:5%;display:flex;justify-content:space-between;align-items:flex-start;font-size:34px;color:#fff;font-weight:900}
+.dt-kokoro{position:absolute;top:36.5%;left:62%;font-size:13px;color:#fff;writing-mode:vertical-rl}
+.dt-bottom{position:absolute;bottom:2.5%;left:0;right:0;text-align:center;font-size:20px;color:#fff;font-weight:900}
+#iconGrid{position:relative;z-index:2;display:grid;grid-template-columns:repeat(3,1fr);gap:14px;padding:20% 14px 46px}
+.aicon{background:rgba(10,3,3,.58);border:2px solid rgba(255,255,255,.35);border-radius:20px;padding:16px 4px 12px;text-align:center;color:#fff;font-family:inherit;box-shadow:0 4px 14px rgba(0,0,0,.45);transition:transform .1s}
+.aicon .gl{display:block;font-size:30px;font-weight:900;line-height:1.2}
+.aicon .no2{display:block;font-family:'Courier New',monospace;font-size:9px;color:rgba(255,255,255,.6);letter-spacing:.2em;margin-top:2px}
+.aicon .lb{display:block;font-size:12px;font-weight:700;margin-top:4px;letter-spacing:.12em}
+.aicon:active{transform:scale(.94)}
+/* ============ 通用控件 ============ */
+.preview{border:1px solid #333;background:#000;padding:8px;max-width:436px;margin:12px auto 0}
+canvas{display:block;width:100%;max-width:420px;height:auto;margin:0 auto}
+.panel{display:none}
+.panel.on{display:block}
+.irow{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+input.txt,input.loc{
+  display:block;width:100%;min-width:0;flex:1 1 100%;
+  background:#000;border:2px solid #444;border-radius:4px;
+  color:#fff;font-size:15px;padding:0 12px;outline:none;font-family:inherit;
+}
+input.txt:focus,input.loc:focus{border-color:#D42027}
+label.fl{display:block;font-family:'Courier New',monospace;font-size:11px;color:#6E6E6E;letter-spacing:.2em;margin:12px 0 2px}
+.chips{display:flex;gap:8px;margin-top:12px;overflow-x:auto;padding-bottom:4px}
+.chip{
+  flex:0 0 auto;height:38px;padding:0 16px;background:#000;
+  border:2px solid #444;border-radius:19px;color:#aaa;
+  font-size:13px;font-weight:700;white-space:nowrap;font-family:inherit;
+}
+.chip.active{border-color:#D42027;color:#fff;background:rgba(212,32,39,.14)}
+.btnrow{display:flex;gap:10px;margin-top:14px}
+.mainbtn{
+  display:block;flex:1;height:52px;
+  background:#D42027;color:#fff;border:none;border-radius:4px;
+  font-size:15px;font-weight:900;letter-spacing:.12em;text-indent:.12em;
+  font-family:inherit;transition:transform .1s,opacity .2s;
+}
+.mainbtn:disabled{opacity:.55}
+.mainbtn:active{transform:scale(0.97)}
+.ghostbtn{background:#000;border:2px solid #D42027;font-size:14px}
+.filebtn{background:#000;border:2px solid #33FF66;color:#33FF66;font-size:14px}
+/* ============ 开机：两段式（终端日志 → 门禁卡识别） ============ */
+#boot{position:fixed;inset:0;z-index:99;background:#000;font-family:'Courier New',monospace;font-size:18px;line-height:2;padding:60px 32px;transition:opacity .6s}
+#boot.off{opacity:0;pointer-events:none}
+#boot .skip{position:absolute;bottom:40px;left:32px;color:#6E6E6E;font-size:11px;letter-spacing:.3em}
+#bootLines{color:#33FF66;white-space:pre-wrap}
+#bootLines .ok{color:#fff}
+#bootLines .bad{color:#ff5040;font-weight:700}
+#bootStage2{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;padding:24px}
+#bootStage2.on{display:flex}
+#bootCv{width:100%;max-width:400px;height:auto;display:block}
+#bootScan{width:100%;max-width:400px;margin-top:14px;font-size:18px;line-height:1.9;color:#33FF66;white-space:pre-wrap;min-height:8.5em}
+#bootScan .ok{color:#fff}
+#bootScan .bad{color:#ff5040;font-weight:700}
+#bootScan .quote{color:#F5C400}
+#bootConfirm{
+  display:none;margin-top:16px;width:100%;max-width:400px;height:56px;
+  background:rgba(212,32,39,.14);border:2px solid #D42027;color:#ff9b8a;
+  border-radius:4px;font-family:inherit;font-size:17px;font-weight:900;
+  letter-spacing:.3em;text-indent:.3em;cursor:pointer;opacity:.35;pointer-events:none;transition:all .3s;
+}
+#bootConfirm.ready{display:block;opacity:1;pointer-events:auto;color:#fff;background:#D42027;animation:confirmPulse 1.4s ease-in-out infinite}
+#bootConfirm:active{transform:scale(0.97)}
+@keyframes confirmPulse{50%{box-shadow:0 0 18px rgba(212,32,39,.8)}}
+#bootDeny{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:#D42027;text-align:center;padding:32px}
+#bootDeny.on{display:flex;animation:denyIn .35s}
+#bootDeny .big{font-family:inherit;font-size:34px;font-weight:900;color:#fff;letter-spacing:.2em}
+#bootDeny .sub{font-family:'Courier New',monospace;font-size:15px;color:#0F0F0F;font-weight:700;line-height:1.9}
+#bootDeny .stripe{width:100%;max-width:360px;height:22px;background:repeating-linear-gradient(45deg,#F5C400 0 20px,#0F0F0F 20px 40px);animation:stripeMove 1s linear infinite}
+#bootDeny .cond{font-family:'Courier New',monospace;font-size:22px;font-weight:700;color:#fff;animation:lamp 1s steps(2,start) infinite}
+@keyframes stripeMove{to{background-position:56px 0}}
+@keyframes denyIn{0%{transform:scale(1.06);filter:brightness(1.6)}100%{transform:scale(1)}}
+#bootRetry{
+  margin-top:8px;height:52px;width:100%;max-width:360px;
+  background:#0F0F0F;border:2px solid #fff;color:#fff;border-radius:4px;
+  font-family:inherit;font-size:15px;font-weight:900;letter-spacing:.2em;cursor:pointer;
+}
+#bootRetry:active{transform:scale(0.97)}
+#boot.shake{animation:bootShake .4s}
+@keyframes bootShake{0%,100%{transform:translateX(0)}20%{transform:translateX(-10px)}40%{transform:translateX(10px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}
+#toast{position:fixed;left:50%;bottom:64px;z-index:100;transform:translateX(-50%) translateY(16px);background:#000;color:#fff;border:1px solid #33FF66;padding:10px 26px;border-radius:22px;font-size:14px;opacity:0;pointer-events:none;transition:all .25s}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ===================== v2.0 新增 APP 样式（不影响原有 APP） ===================== */
+.avhint{font-family:'Courier New',monospace;font-size:11px;color:#6E6E6E;line-height:1.9;margin-top:10px;letter-spacing:.05em}
+.avhint b{color:#D42027}
+.shelf{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:12px}
+.item{background:#000;border:2px solid #444;border-radius:8px;padding:10px 4px 8px;text-align:center;cursor:pointer;transition:transform .1s,border-color .15s;font-family:inherit;color:#fff}
+.item:active{transform:scale(.94)}
+.item.sel{border-color:#F5C400;background:rgba(245,196,0,.08)}
+.item .em{font-size:25px;line-height:1.25}
+.item .nm{font-size:12px;font-weight:700;margin-top:3px;letter-spacing:.08em}
+.item .pr{font-family:'Courier New',monospace;font-size:11px;color:#F5C400;margin-top:2px}
+.item .stock{font-family:'Courier New',monospace;font-size:9px;color:#6E6E6E;margin-top:1px}
+.cartbar{display:flex;align-items:center;justify-content:space-between;margin-top:12px;padding:9px 12px;background:#000;border:1px solid #333;font-family:'Courier New',monospace;font-size:12px;color:#ddd}
+.cartbar b{color:#F5C400;font-size:15px}
+#rcpt{margin-top:14px;background:#F5F2E8;color:#222;padding:16px 16px 14px;font-family:'Courier New',monospace;font-size:11.5px;line-height:1.95;display:none;box-shadow:0 6px 22px rgba(0,0,0,.55)}
+#rcpt.on{display:block;animation:rcptIn .45s ease-out}
+@keyframes rcptIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:none}}
+#rcpt h4{text-align:center;font-size:13px;letter-spacing:.22em;border-bottom:1px dashed #999;padding-bottom:7px;margin-bottom:9px}
+#rcpt .cut{border-top:1px dashed #999;margin-top:9px;padding-top:7px;color:#a33}
+#rcpt .rc-foot{text-align:center;letter-spacing:.3em;font-size:10px;color:#777;margin-top:8px}
+#martLot{margin-top:9px;font-family:'Courier New',monospace;font-size:11px;color:#6E6E6E;letter-spacing:.08em}
+#martLot.ok{color:#33FF66}
+#martJam{display:none;margin-top:12px;border:2px solid #D42027;background:rgba(212,32,39,.12);padding:12px 14px;font-family:'Courier New',monospace;font-size:12px;color:#ff9b8a;line-height:1.9}
+#martJam.on{display:block;animation:denyIn .3s}
+#martJam .jt{color:#D42027;font-weight:700;font-size:14px;letter-spacing:.15em}
+.mapLegend{display:flex;gap:12px;flex-wrap:wrap;font-family:'Courier New',monospace;font-size:10px;color:#6E6E6E;margin-top:8px;letter-spacing:.05em}
+.mapLegend i{font-style:normal;color:#B3261E}
+#mapMsg{margin-top:10px;background:#000;border-left:6px solid #D42027;padding:9px 12px;font-family:'Courier New',monospace;font-size:11.5px;line-height:1.85;color:#ccc;min-height:56px}
+#mapMsg b{color:#33FF66}
+.nbAuth{border:2px solid #B3261E;border-radius:6px;background:#050505;padding:10px}
+.nbAuth canvas{display:block;width:100%}
+.nbLog{font-family:'Courier New',monospace;font-size:11px;color:#33FF66;line-height:1.95;height:86px;overflow:hidden;margin-top:8px;padding:6px 10px;background:#000;border:1px solid #222}
+.nbLog .ok{color:#fff}
+.nbLog .warn{color:#F5C400}
+#nbBody{margin-top:12px;background:rgba(10,3,3,.8);border:2px solid #333;border-radius:6px;padding:12px;font-family:'Courier New',monospace;font-size:11.5px;line-height:1.75;color:#ddd}
+.nbSec{color:#D42027;font-weight:700;font-size:12px;border-bottom:1px solid #D42027;padding-bottom:5px;margin-bottom:8px;display:flex;justify-content:space-between;letter-spacing:.1em}
+.nbRow{padding:6px 0;border-bottom:1px solid rgba(212,32,39,.18)}
+.nbRow b{color:#D42027;display:block;font-size:11px;letter-spacing:.08em}
+.nbRow.mask{color:#6E6E6E}
+.nbLock{margin-top:10px;padding:12px;background:rgba(212,32,39,.1);border:2px solid #D42027;text-align:center;color:#ccc;font-size:11.5px;line-height:1.8}
+.nbLock input{background:#000;border:2px solid #D42027;color:#fff;padding:6px 10px;font-family:'Courier New',monospace;letter-spacing:.3em;width:132px;outline:none;margin-top:8px;text-align:center}
+.nbLock button{background:#D42027;color:#fff;border:none;padding:7px 14px;font-family:'Courier New',monospace;font-weight:700;margin-left:6px;letter-spacing:.1em}
+.lv{color:#F5C400;font-weight:700}
+body.v2 #appview > .preview{display:none}
+</style>
+</head>
+<body>
+
+<!-- ============ 开机：① 终端日志 → ② 门禁卡+假识别 →（彩蛋拦截）→ 确认 ============ -->
+<div id="boot">
+  <div id="bootLines"></div>
+  <div id="bootStage2">
+    <canvas id="bootCv" width="1080" height="1150"></canvas>
+    <div id="bootScan"></div>
+    <button id="bootConfirm">确 认 ▸ ACCESS GRANTED</button>
+  </div>
+  <div id="bootDeny">
+    <div class="big">認証失敗 ▸ ACCESS DENIED</div>
+    <div class="stripe"></div>
+    <div class="cond" id="denyCond">CONDITION : RED</div>
+    <div class="sub" id="denySub">检测到未登记适格者<br>A.T. FIELD 已展开 ▸ 请求重新认证</div>
+    <div class="stripe"></div>
+    <button id="bootRetry">重新认证 ▸ RETRY</button>
+  </div>
+  <div class="skip">TAP TO SKIP ▸ 轻触跳过</div>
+</div>
+
+<div class="app">
+  <header>
+    <h1>新适格者终端</h1>
+    <div class="sub">NEW CHILDREN TERMINAL v1.8</div>
+  </header>
+
+  <div id="statusbar">
+    <span id="sbClock">--:--:--</span>
+    <span id="sbGreet"></span>
+    <span id="sbSync">SYNC ---%</span>
+    <span id="sbLv">ALERT LV.1</span>
+    <span id="sbSnd" style="color:#6E6E6E;cursor:pointer">♪ ON</span>
+    <span id="sbLamp"></span>
+  </div>
+
+  <!-- ============ 桌面 ============ -->
+  <div id="desktop">
+    <img id="deskBg" alt="">
+    <div class="dt-art">
+      <div class="dt-logo">EVANGELION</div>
+      <svg class="dt-nervlogo" viewBox="102.0 7.83 863.21 808.96" aria-hidden="true"><g fill="#FFFFFF"><path d="M916.0,816.7 L790.0,686.8 L787.5,690.0 L749.0,785.0 L747.0,787.6 L742.0,787.4 L649.4,577.0 L644.0,569.7 L635.0,563.3 L620.4,560.0 L620.4,557.0 L622.0,555.8 L660.0,555.6 L662.6,555.0 L662.3,554.0 L601.9,491.0 L596.0,484.6 L595.6,483.0 L590.0,478.4 L525.0,411.2 L524.0,410.9 L523.3,413.0 L523.2,449.0 L523.0,451.0 L522.0,451.2 L518.0,450.1 L514.5,433.0 L511.4,427.0 L506.0,422.3 L500.0,419.5 L486.0,417.4 L432.6,418.0 L431.8,422.0 L432.5,509.0 L433.8,513.0 L436.0,515.6 L443.0,518.7 L491.0,519.3 L514.0,517.3 L524.0,513.4 L533.0,506.7 L543.3,494.0 L554.0,475.9 L556.0,474.7 L560.0,474.9 L557.0,486.4 L541.1,530.0 L373.0,530.2 L369.0,529.5 L369.0,525.9 L379.0,525.2 L391.0,521.5 L397.4,516.0 L399.5,511.0 L400.7,493.0 L400.7,346.0 L400.3,330.0 L399.4,324.0 L396.7,317.0 L393.0,313.4 L389.0,311.4 L381.0,309.6 L369.1,309.0 L368.7,306.0 L371.0,304.6 L418.0,304.5 L420.5,304.0 L420.7,303.0 L396.0,277.0 L394.6,274.0 L392.4,273.0 L380.0,260.3 L262.0,137.1 L262.8,134.0 L266.0,130.1 L289.5,104.0 L294.0,102.6 L298.5,104.0 L299.4,127.0 L303.9,137.0 L309.7,146.0 L361.2,214.0 L372.7,227.0 L384.0,236.4 L394.0,241.3 L407.0,242.1 L423.0,241.3 L434.0,237.5 L446.0,227.8 L451.2,221.0 L461.7,202.0 L473.6,172.0 L475.9,131.0 L479.8,99.0 L482.8,84.0 L488.0,70.4 L494.0,60.0 L511.1,46.0 L529.7,34.0 L548.5,28.0 L579.0,28.4 L587.0,27.4 L599.7,16.0 L606.0,14.1 L613.0,15.8 L621.0,19.6 L629.0,20.4 L634.0,19.5 L647.0,11.8 L652.0,10.7 L661.9,14.0 L672.0,19.3 L678.0,20.8 L686.0,19.3 L696.1,10.0 L700.0,7.8 L705.0,8.6 L713.0,15.1 L718.0,16.1 L725.0,15.4 L733.0,12.6 L743.0,11.8 L748.5,14.0 L752.0,16.7 L761.0,27.6 L764.0,27.5 L769.9,22.0 L773.0,21.7 L779.0,23.7 L782.3,29.0 L782.0,32.0 L776.4,41.0 L777.0,53.0 L776.0,56.9 L755.2,77.0 L754.5,81.0 L755.3,86.0 L760.0,92.6 L782.0,100.4 L815.0,100.9 L819.0,101.9 L821.0,104.4 L821.7,110.0 L824.0,112.6 L843.6,114.0 L856.0,125.5 L873.0,125.6 L878.0,126.9 L882.7,136.0 L888.0,142.9 L893.0,147.2 L901.0,151.5 L915.2,174.0 L928.0,180.0 L930.2,184.0 L933.5,197.0 L936.5,202.0 L952.1,218.0 L960.0,228.0 L965.0,236.6 L965.2,241.0 L963.0,247.0 L959.0,253.7 L953.0,260.2 L947.0,263.1 L934.0,263.7 L928.0,265.7 L916.0,285.5 L913.0,287.0 L899.0,287.5 L891.0,289.4 L886.0,293.1 L875.0,307.3 L872.0,309.2 L850.0,307.6 L835.0,313.1 L818.0,308.7 L814.0,310.2 L805.0,316.1 L801.0,316.1 L790.0,308.5 L774.0,307.5 L766.0,300.5 L759.0,298.4 L753.0,299.5 L747.0,302.6 L740.4,308.0 L739.3,311.0 L739.8,314.0 L742.0,315.8 L765.0,316.9 L766.9,321.0 L768.4,330.0 L771.0,332.4 L798.4,335.0 L807.5,348.0 L811.0,350.6 L834.0,354.0 L844.0,357.0 L847.0,361.0 L849.6,377.0 L865.0,396.0 L865.0,399.5 L858.4,406.0 L858.4,411.0 L866.2,425.0 L873.2,433.0 L881.0,445.0 L881.5,478.0 L884.0,481.3 L893.0,486.9 L895.0,490.0 L893.8,512.0 L895.5,523.0 L900.6,531.0 L915.0,547.3 L916.7,550.0 L916.3,552.0 L917.4,554.0 L917.0,557.0 L911.3,569.0 L909.8,577.0 L910.6,583.0 L914.0,593.0 L911.8,607.0 L912.3,611.0 L921.1,629.0 L914.5,639.0 L914.0,645.0 L922.1,661.0 L921.0,664.6 L911.8,675.0 L909.5,682.0 L910.5,689.0 L916.0,698.5 L917.0,703.0 L911.4,727.0 L910.7,741.0 L912.6,752.0 L920.0,764.0 L921.1,769.0 L917.3,791.0 L916.0,816.7 ZM647.0,783.2 L587.0,783.2 L509.0,677.0 L507.0,676.0 L487.0,675.9 L484.1,677.0 L483.8,681.0 L483.8,745.0 L486.2,766.0 L488.7,771.0 L494.0,775.3 L504.0,778.5 L515.9,779.0 L516.4,783.0 L419.8,783.0 L420.1,779.0 L437.0,777.5 L443.0,774.8 L447.2,771.0 L449.3,768.0 L451.4,761.0 L452.4,743.0 L452.4,593.0 L451.3,577.0 L448.2,568.0 L444.0,563.7 L434.0,559.7 L420.0,559.0 L420.0,554.5 L509.0,554.1 L539.0,555.9 L555.0,558.9 L563.7,562.0 L573.8,568.0 L580.9,574.0 L591.0,586.2 L597.0,602.0 L597.1,623.0 L594.0,633.9 L585.0,648.5 L576.0,657.0 L562.3,665.0 L543.0,671.3 L542.2,673.0 L593.3,744.0 L607.0,760.1 L615.0,767.4 L624.0,772.6 L632.0,775.5 L647.2,779.0 L648.0,782.0 L647.0,783.2 ZM260.0,420.8 L298.9,468.0 L302.0,471.3 L303.0,471.9 L303.7,471.0 L303.9,342.0 L302.5,324.0 L299.3,316.0 L294.9,312.0 L286.0,308.8 L272.0,308.0 L271.8,304.0 L350.0,303.8 L349.6,308.0 L333.0,309.4 L325.0,313.6 L320.6,319.0 L318.6,327.0 L317.7,341.0 L317.8,523.0 L317.1,532.0 L312.0,531.6 L260.0,469.1 L260.0,420.8 ZM754.8,735.0 L777.2,681.0 L778.7,675.0 L693.6,586.0 L689.0,582.3 L691.5,594.0 L725.0,670.7 L725.3,674.0 L729.0,680.0 L750.2,730.0 L754.0,735.6 L754.8,735.0 ZM496.7,666.0 L508.0,665.4 L520.0,663.3 L535.0,657.5 L547.2,648.0 L553.3,640.0 L557.4,631.0 L559.5,622.0 L559.6,608.0 L555.5,593.0 L546.5,580.0 L539.0,573.7 L534.0,571.0 L533.0,569.3 L520.0,566.7 L507.0,566.3 L486.0,569.3 L484.0,571.0 L483.8,664.0 L485.0,665.7 L496.7,666.0 ZM491.4,406.0 L498.0,405.2 L506.0,402.4 L509.9,399.0 L510.5,396.0 L439.5,322.0 L433.0,316.2 L431.8,322.0 L432.1,405.0 L436.0,406.5 L491.4,406.0 Z" fill-rule="evenodd"/><path d="M317.0,532.0 L312.5,532.0 L308.0,527.0 L162.0,351.1 L161.0,353.0 L160.8,362.0 L161.6,507.0 L163.5,514.0 L168.0,519.2 L179.0,523.5 L192.5,524.0 L193.1,528.0 L188.0,529.1 L115.0,528.9 L114.1,526.0 L115.0,523.8 L128.0,523.5 L138.0,519.6 L143.1,515.0 L145.5,509.0 L146.8,491.0 L146.8,333.0 L142.3,327.0 L130.0,315.5 L116.0,309.4 L102.4,308.0 L102.0,303.9 L163.2,304.0 L222.1,375.0 L225.2,379.0 L224.3,380.0 L227.8,382.0 L233.0,387.9 L303.0,471.9 L303.9,468.0 L303.9,342.0 L302.5,324.0 L299.3,316.0 L294.9,312.0 L286.0,308.8 L272.0,308.0 L271.8,304.0 L350.0,303.8 L349.6,308.0 L333.0,309.4 L325.0,313.6 L320.6,319.0 L318.6,327.0 L317.7,341.0 L317.8,528.0 L317.0,532.0 Z" fill-rule="evenodd"/><path d="M647.0,783.2 L587.0,783.2 L509.0,677.0 L507.0,676.0 L487.0,675.9 L484.1,677.0 L483.8,681.0 L483.8,745.0 L486.2,766.0 L488.7,771.0 L494.0,775.3 L504.0,778.5 L515.9,779.0 L516.4,783.0 L419.8,783.0 L420.1,779.0 L437.0,777.5 L443.0,774.8 L447.2,771.0 L449.3,768.0 L451.4,761.0 L452.4,743.0 L452.4,593.0 L451.3,577.0 L448.2,568.0 L444.0,563.7 L434.0,559.7 L420.0,559.0 L420.0,554.5 L509.0,554.1 L539.0,555.9 L555.0,558.9 L563.7,562.0 L573.8,568.0 L580.9,574.0 L591.0,586.2 L597.0,602.0 L597.1,623.0 L594.0,633.9 L585.0,648.5 L576.0,657.0 L562.3,665.0 L543.0,671.3 L542.2,673.0 L593.3,744.0 L607.0,760.1 L615.0,767.4 L624.0,772.6 L632.0,775.5 L647.2,779.0 L648.0,782.0 L647.0,783.2 ZM496.7,666.0 L508.0,665.4 L520.0,663.3 L535.0,657.5 L547.2,648.0 L553.3,640.0 L557.4,631.0 L559.5,622.0 L559.6,608.0 L555.5,593.0 L546.5,580.0 L539.0,573.7 L534.0,571.0 L533.0,569.3 L520.0,566.7 L507.0,566.3 L486.0,569.3 L484.0,571.0 L483.8,664.0 L485.0,665.7 L496.7,666.0 ZM650.0,578.3 L644.0,569.7 L635.0,563.3 L621.0,560.4 L620.2,559.0 L621.0,556.0 L650.0,555.7 L650.0,578.3 Z" fill-rule="evenodd"/></g></svg>
+      <div class="dt-rain">雨</div>
+      <div class="dt-nga">NEON<br>GENESIS<br>EVANGELION</div>
+      <div class="dt-ep">EPISODE:25</div>
+      <div class="dt-love">Do you love me?</div>
+      <div class="dt-nerv">NERV<br>TOKYO-3</div>
+      <div class="dt-num">02</div>
+      <div class="dt-kokoro">心の壁</div>
+      <div class="dt-jp"><span>使</span><span>徒</span><span>、</span><span>襲</span><span>来</span></div>
+      <div class="dt-bottom">新世紀エヴァンゲリオン</div>
+    </div>
+    <div id="iconGrid">
+      <button class="aicon" data-app="alert" style="border-color:#F5C400"><span class="gl" style="color:#F5C400">警</span><span class="no2">APP-01</span><span class="lb">使徒警报</span></button>
+      <button class="aicon" data-app="magi" style="border-color:#33FF66"><span class="gl" style="color:#33FF66">占</span><span class="no2">APP-02</span><span class="lb">MAGI占卜</span></button>
+      <button class="aicon" data-app="title"><span class="gl">題</span><span class="no2">APP-03</span><span class="lb">标题字卡</span></button>
+      <button class="aicon" data-app="license" style="border-color:#D42027"><span class="gl" style="color:#D42027">証</span><span class="no2">APP-04</span><span class="lb">ID CARD</span></button>
+      <button class="aicon" data-app="atfield" style="border-color:#FF6A2B"><span class="gl" style="color:#FF6A2B">場</span><span class="no2">APP-05</span><span class="lb">AT力场</span></button>
+      <button class="aicon" data-app="emergency" style="border-color:#5A8CF0"><span class="gl" style="color:#5A8CF0">襲</span><span class="no2">APP-06</span><span class="lb">袭来倒计时</span></button>
+      <button class="aicon" data-app="mart" style="border-color:#F5C400"><span class="gl" style="color:#F5C400">売</span><span class="no2">APP-07</span><span class="lb">小卖部</span></button>
+      <button class="aicon" data-app="map" style="border-color:#8B0009"><span class="gl" style="color:#B3261E">圖</span><span class="no2">APP-08</span><span class="lb">都市地图</span></button>
+      <button class="aicon" data-app="notebook" style="border-color:#D42027"><span class="gl" style="color:#D42027">書</span><span class="no2">APP-09</span><span class="lb">机密记事</span></button>
+    </div>
+  </div>
+
+  <!-- ============ APP 视图 ============ -->
+  <div id="appview" style="display:none">
+    <div class="btnrow">
+      <button class="mainbtn ghostbtn" id="homeBtn">◀ 返回桌面 HOME</button>
+    </div>
+    <div class="preview">
+      <canvas id="cv" width="1080" height="1080"></canvas>
+    </div>
+
+    <!-- APP-01 使徒警报 -->
+    <div class="panel on" id="panel-alert">
+      <label class="fl">▸ 警告文本</label>
+      <div class="irow">
+        <input class="txt" id="alertTxt" maxlength="20" value="周一接近中" placeholder="输入要警告的事">
+      </div>
+      <label class="fl">▸ 发生地</label>
+      <div class="irow">
+        <input class="loc" id="alertLoc" maxlength="12" value="第三新東京市" placeholder="第X新東京市">
+      </div>
+      <div class="chips" id="alertChips">
+        <button class="chip active" data-t="LOOP">三界面循环</button>
+        <button class="chip" data-t="A">非常事態</button>
+        <button class="chip" data-t="B">PATTERN BLUE</button>
+        <button class="chip" data-t="C">MAGI 判定</button>
+      </div>
+      <div class="btnrow">
+        <button class="mainbtn" id="alertPng">保存图片</button>
+        <button class="mainbtn ghostbtn" id="alertGif">导出 GIF</button>
+      </div>
+    </div>
+
+    <!-- APP-02 MAGI 占卜 -->
+    <div class="panel" id="panel-magi">
+      <label class="fl">▸ 问题</label>
+      <div class="irow">
+        <input class="txt" id="magiQ" maxlength="20" value="周末补班正常吗" placeholder="输入想问 MAGI 的问题">
+      </div>
+      <div class="btnrow">
+        <button class="mainbtn" id="askBtn">询问 MAGI</button>
+      </div>
+      <div class="btnrow">
+        <button class="mainbtn ghostbtn" id="magiPng" disabled>保存结果</button>
+        <button class="mainbtn ghostbtn" id="magiGif" disabled>导出动画 GIF</button>
+      </div>
+    </div>
+
+    <!-- APP-03 标题字卡 -->
+    <div class="panel" id="panel-title">
+      <label class="fl">▸ 回数</label>
+      <div class="irow">
+        <input class="txt" id="titleEp" maxlength="6" value="第 01 話" placeholder="第X話">
+      </div>
+      <label class="fl">▸ 标题（最长 14 字，自动排两行）</label>
+      <div class="irow">
+        <input class="txt" id="titleTxt" maxlength="14" value="使徒、襲来" placeholder="本话标题" style="height:64px;font-size:18px;letter-spacing:.05em">
+      </div>
+      <div class="btnrow">
+        <button class="mainbtn" id="titlePng">保存字卡</button>
+      </div>
+    </div>
+
+    <!-- APP-04 NERV ID CARD -->
+    <div class="panel" id="panel-license">
+      <label class="fl">▸ 预设适格者（马尔杜克机关档案）</label>
+      <div class="chips" id="licChips">
+        <button class="chip" data-p="0">绫波丽</button>
+        <button class="chip" data-p="1">明日香</button>
+        <button class="chip active" data-p="2">碇真嗣</button>
+        <button class="chip" data-p="3">铃原东治</button>
+        <button class="chip" data-p="4">渚薰</button>
+        <button class="chip" data-p="9">自定义</button>
+      </div>
+      <label class="fl">▸ 预览面</label>
+      <div class="chips" id="licSides">
+        <button class="chip active" data-s="F">正面 ▸ 白卡通行证</button>
+        <button class="chip" data-s="B">背面 ▸ UN NERV</button>
+      </div>
+      <label class="fl">▸ 姓名罗马字</label>
+      <div class="irow">
+        <input class="loc" id="licNameEN" maxlength="22" value="Shinji Ikari" placeholder="SHINJI IKARI">
+      </div>
+      <label class="fl">▸ 中文名</label>
+      <div class="irow">
+        <input class="txt" id="licNameCN" maxlength="10" value="碇真嗣" placeholder="中文名">
+      </div>
+      <label class="fl">▸ 片假名</label>
+      <div class="irow">
+        <input class="txt" id="licKana" maxlength="18" value="イカリ・シンジ" placeholder="イカリ・シンジ">
+      </div>
+      <label class="fl">▸ 适格者番号</label>
+      <div class="irow">
+        <select id="licNo" class="loc" style="height:50px;background:#000;color:#fff;border:2px solid #444;font-family:inherit;outline:none">
+          <option value="1">第1適格者</option>
+          <option value="2">第2適格者</option>
+          <option value="3" selected>第3適格者</option>
+          <option value="4">第4適格者</option>
+          <option value="5">第5適格者</option>
+        </select>
+      </div>
+      <label class="fl">▸ 指定机体</label>
+      <div class="irow">
+        <input class="txt" id="licUnit" maxlength="14" value="EVA-01 初号機" placeholder="EVA-XX 机体名">
+      </div>
+      <label class="fl">▸ 同步率</label>
+      <div class="irow">
+        <input class="loc" id="licSync" maxlength="8" value="41.3%">
+      </div>
+      <label class="fl">▸ 血型</label>
+      <div class="irow">
+        <input class="loc" id="licBlood" maxlength="4" value="A">
+      </div>
+      <label class="fl">▸ 生年</label>
+      <div class="irow">
+        <input class="txt" id="licDob" maxlength="12" value="2001.06.06" placeholder="YYYY.MM.DD">
+      </div>
+      <label class="fl">▸ 卡号（决定条码/竖条/二进制图案）</label>
+      <div class="irow">
+        <input class="txt" id="licCard" maxlength="12" value="0003-105-42">
+      </div>
+      <label class="fl">▸ 主题色</label>
+      <div class="irow">
+        <input type="color" id="licColor" value="#7B5EA7" style="width:100%;height:50px;background:#000;border:2px solid #444;padding:4px">
+      </div>
+      <label class="fl">▸ 备注</label>
+      <div class="irow">
+        <input class="txt" id="licMemo" maxlength="12" value="SPECIALTY ▸ 起動" placeholder="备注">
+      </div>
+      <label class="fl">▸ 证件照（可选）</label>
+      <div class="btnrow">
+        <button class="mainbtn filebtn" id="licPhotoBtn">上传照片</button>
+        <button class="mainbtn filebtn" id="licPhotoClr">清除照片</button>
+      </div>
+      <input type="file" id="licPhoto" accept="image/*" style="display:none">
+      <label class="fl">▸ NERV Logo（上传真图替换矢量叶形，本机永久生效）</label>
+      <div class="btnrow">
+        <button class="mainbtn filebtn" id="licLogoBtn">上传 Logo 图</button>
+        <button class="mainbtn filebtn" id="licLogoClr">恢复矢量版</button>
+      </div>
+      <input type="file" id="licLogo" accept="image/*" style="display:none">
+      <div class="btnrow">
+        <button class="mainbtn" id="licFront">保存正面</button>
+        <button class="mainbtn ghostbtn" id="licBack">保存背面</button>
+      </div>
+      <div class="btnrow">
+        <button class="mainbtn ghostbtn" id="licBoth">正反双面（两次下载）</button>
+      </div>
+      <label class="fl">▸ 85.6×54mm 信用卡规格 @300DPI（1012×638px）</label>
+    </div>
+
+    <!-- APP-05 AT力场壁纸 -->
+    <div class="panel" id="panel-atfield">
+      <label class="fl">▸ 核心文字 ▸ 主（名字 / 口号）</label>
+      <div class="irow">
+        <input class="txt" id="atMain" maxlength="8" value="碇真嗣" placeholder="主文字" style="height:56px;font-size:17px">
+      </div>
+      <label class="fl">▸ 核心文字 ▸ 副</label>
+      <div class="irow">
+        <input class="txt" id="atSub" maxlength="14" value="A.T. FIELD" placeholder="副文字">
+      </div>
+      <label class="fl">▸ 展开模式</label>
+      <div class="chips" id="atChips">
+        <button class="chip active" data-m="O">通常展開 ▸ 橙</button>
+        <button class="chip" data-m="R">覺醒 ▸ 红</button>
+        <button class="chip" data-m="B">PATTERN BLUE ▸ 蓝</button>
+      </div>
+      <div class="btnrow">
+        <button class="mainbtn" id="atPng">保存壁纸</button>
+      </div>
+      <label class="fl">▸ 1080×1920 手机壁纸 ▸ PNG 直出</label>
+    </div>
+
+    <!-- APP-06 使徒袭来倒计时 -->
+    <div class="panel" id="panel-emergency">
+      <label class="fl">▸ 活动限界（分钟，1–99，改完即重置）</label>
+      <div class="irow">
+        <input class="txt" id="emMin" maxlength="2" value="5" placeholder="分钟">
+      </div>
+      <label class="fl">▸ 监视目标（右栏标题）</label>
+      <div class="irow">
+        <input class="txt" id="emTarget" maxlength="30" value="EVA-01 Assigned Pilot" placeholder="EVA-XX Assigned Pilot">
+      </div>
+      <label class="fl">▸ 显示模式</label>
+      <div class="chips" id="emViewChips">
+        <button class="chip active" data-v="RADAR">雷达矩阵 ▸ 桌垫</button>
+        <button class="chip" data-v="HEX">六角蜂巢 ▸ 警报墙</button>
+      </div>
+      <label class="fl">▸ 时间流速（真实影响倒计时）</label>
+      <div class="chips" id="emSpdChips">
+        <button class="chip" data-s="STOP">STOP</button>
+        <button class="chip" data-s="SLOW">SLOW</button>
+        <button class="chip active" data-s="NORMAL">NORMAL</button>
+        <button class="chip" data-s="RACING">RACING</button>
+      </div>
+      <div class="btnrow">
+        <button class="mainbtn" id="emPng">保存图</button>
+        <button class="mainbtn ghostbtn" id="emReset">重置计时</button>
+      </div>
+      <label class="fl">▸ 1350×1080 横版 ▸ 归零触发起動限界警报</label>
+    </div>
+
+    <!-- APP-07 小卖部 -->
+    <div class="panel" id="panel-mart">
+      <label class="fl">▸ NERV 売店（第3新東京市 · 地下第1層）</label>
+      <div class="shelf" id="martShelf"></div>
+      <div class="cartbar">
+        <span id="cartInfo">已选 0 件</span>
+        <span>合计 <b id="cartTotal">¥0</b></span>
+      </div>
+      <div id="martLot">MAGI 伝動 ▸ 満 ¥500 で抽選権利</div>
+      <div class="btnrow">
+        <button class="mainbtn" id="martPay">投币 ▸ 去收银台</button>
+        <button class="mainbtn ghostbtn" id="martClr">清空</button>
+      </div>
+      <div class="btnrow"><button class="mainbtn" id="martPng" disabled>保存小票 ▸ PNG</button></div>
+      <div class="avhint">※ 结算需 <b>MAGI 三贤人多数决</b>，CASPER 有约 18% 概率因「女人的一时兴起」投否定。<br>※ 满 <b>¥500</b> 触发 MAGI 传动抽奖；通过后有 <b>10%</b> 概率收银机卡纸，点 RETRY 重新出票。<br>※ 画面左侧贩卖机的货道可直接点击；右侧是ペンペン店長，戳它会换台词。</div>
+      <div id="martJam">
+        <div class="jt">⚠ PAPER JAM ▸ 收银机卡纸</div>
+        打印纸卡住了 ▸ 已呼叫技师<br>鈴原東治（维修中…）<br>※ 已成交商品不受影响 ▸ 点 RETRY 重新出票
+        <div class="btnrow"><button class="mainbtn" id="martRetry">重新打印 ▸ RETRY</button></div>
+      </div>
+      <div id="rcpt"></div>
+    </div>
+
+    <!-- APP-08 都市地图 -->
+    <div class="panel" id="panel-map">
+      <div class="preview"><canvas id="mapCv" width="880" height="1000"></canvas></div>
+      <div class="mapLegend"><span>◉ 已解锁辖区</span><span><i>▣</i> 加密 ▸ 点一下即要求输入密码</span><span>※ 密码提示：第2適格者的名</span></div>
+      <div id="mapMsg">全図加密中 ▸ 点击任意辖区 ▸ 输入アクセスコード 解锁。<br>提示 ▸ 第2適格者的名。</div>
+      <div class="btnrow">
+        <button class="mainbtn ghostbtn" id="mapReset">上锁 ▸ 复位</button>
+      </div>
+    </div>
+
+    <!-- APP-09 机密记事 -->
+    <div class="panel" id="panel-notebook">
+      <div id="nbStage"></div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+(function(){
+'use strict';
+/* ================================================================
+   新适格者终端 v1.8
+   开机两段式：① 终端日志 → ② 门禁卡+假识别 →（~10% 拦截彩蛋）→ 确认进桌面
+   [预留位] bootBgImg / deskBgImg：封面卡面与桌面背景图槽（图到货接入）
+   ================================================================ */
+var C = {
+  red:'#D42027', darkred:'#8B0009', orange:'#FF6A2B',
+  yellow:'#F5C400', black:'#0F0F0F', white:'#FFFFFF',
+  green:'#33FF66', gray:'#6E6E6E'
+};
+var cv = document.getElementById('cv');
+var ctx = cv.getContext('2d');
+var toastEl = document.getElementById('toast');
+var toastTimer = null;
+var busy = false;
+
+/* ============ NERV 徽章 ▸ 真实矢量化路径（截图 marching-squares 重绘，全图红色 IoU 0.966） ============ */
+var NERV_EMBLEM_BOX = { x0: 102.0, y0: 7.83, w: 863.21, h: 808.96 };
+var NERV_EMBLEM_PATHS = [
+  'M916.0,816.7 L790.0,686.8 L787.5,690.0 L749.0,785.0 L747.0,787.6 L742.0,787.4 L649.4,577.0 L644.0,569.7 L635.0,563.3 L620.4,560.0 L620.4,557.0 L622.0,555.8 L660.0,555.6 L662.6,555.0 L662.3,554.0 L601.9,491.0 L596.0,484.6 L595.6,483.0 L590.0,478.4 L525.0,411.2 L524.0,410.9 L523.3,413.0 L523.2,449.0 L523.0,451.0 L522.0,451.2 L518.0,450.1 L514.5,433.0 L511.4,427.0 L506.0,422.3 L500.0,419.5 L486.0,417.4 L432.6,418.0 L431.8,422.0 L432.5,509.0 L433.8,513.0 L436.0,515.6 L443.0,518.7 L491.0,519.3 L514.0,517.3 L524.0,513.4 L533.0,506.7 L543.3,494.0 L554.0,475.9 L556.0,474.7 L560.0,474.9 L557.0,486.4 L541.1,530.0 L373.0,530.2 L369.0,529.5 L369.0,525.9 L379.0,525.2 L391.0,521.5 L397.4,516.0 L399.5,511.0 L400.7,493.0 L400.7,346.0 L400.3,330.0 L399.4,324.0 L396.7,317.0 L393.0,313.4 L389.0,311.4 L381.0,309.6 L369.1,309.0 L368.7,306.0 L371.0,304.6 L418.0,304.5 L420.5,304.0 L420.7,303.0 L396.0,277.0 L394.6,274.0 L392.4,273.0 L380.0,260.3 L262.0,137.1 L262.8,134.0 L266.0,130.1 L289.5,104.0 L294.0,102.6 L298.5,104.0 L299.4,127.0 L303.9,137.0 L309.7,146.0 L361.2,214.0 L372.7,227.0 L384.0,236.4 L394.0,241.3 L407.0,242.1 L423.0,241.3 L434.0,237.5 L446.0,227.8 L451.2,221.0 L461.7,202.0 L473.6,172.0 L475.9,131.0 L479.8,99.0 L482.8,84.0 L488.0,70.4 L494.0,60.0 L511.1,46.0 L529.7,34.0 L548.5,28.0 L579.0,28.4 L587.0,27.4 L599.7,16.0 L606.0,14.1 L613.0,15.8 L621.0,19.6 L629.0,20.4 L634.0,19.5 L647.0,11.8 L652.0,10.7 L661.9,14.0 L672.0,19.3 L678.0,20.8 L686.0,19.3 L696.1,10.0 L700.0,7.8 L705.0,8.6 L713.0,15.1 L718.0,16.1 L725.0,15.4 L733.0,12.6 L743.0,11.8 L748.5,14.0 L752.0,16.7 L761.0,27.6 L764.0,27.5 L769.9,22.0 L773.0,21.7 L779.0,23.7 L782.3,29.0 L782.0,32.0 L776.4,41.0 L777.0,53.0 L776.0,56.9 L755.2,77.0 L754.5,81.0 L755.3,86.0 L760.0,92.6 L782.0,100.4 L815.0,100.9 L819.0,101.9 L821.0,104.4 L821.7,110.0 L824.0,112.6 L843.6,114.0 L856.0,125.5 L873.0,125.6 L878.0,126.9 L882.7,136.0 L888.0,142.9 L893.0,147.2 L901.0,151.5 L915.2,174.0 L928.0,180.0 L930.2,184.0 L933.5,197.0 L936.5,202.0 L952.1,218.0 L960.0,228.0 L965.0,236.6 L965.2,241.0 L963.0,247.0 L959.0,253.7 L953.0,260.2 L947.0,263.1 L934.0,263.7 L928.0,265.7 L916.0,285.5 L913.0,287.0 L899.0,287.5 L891.0,289.4 L886.0,293.1 L875.0,307.3 L872.0,309.2 L850.0,307.6 L835.0,313.1 L818.0,308.7 L814.0,310.2 L805.0,316.1 L801.0,316.1 L790.0,308.5 L774.0,307.5 L766.0,300.5 L759.0,298.4 L753.0,299.5 L747.0,302.6 L740.4,308.0 L739.3,311.0 L739.8,314.0 L742.0,315.8 L765.0,316.9 L766.9,321.0 L768.4,330.0 L771.0,332.4 L798.4,335.0 L807.5,348.0 L811.0,350.6 L834.0,354.0 L844.0,357.0 L847.0,361.0 L849.6,377.0 L865.0,396.0 L865.0,399.5 L858.4,406.0 L858.4,411.0 L866.2,425.0 L873.2,433.0 L881.0,445.0 L881.5,478.0 L884.0,481.3 L893.0,486.9 L895.0,490.0 L893.8,512.0 L895.5,523.0 L900.6,531.0 L915.0,547.3 L916.7,550.0 L916.3,552.0 L917.4,554.0 L917.0,557.0 L911.3,569.0 L909.8,577.0 L910.6,583.0 L914.0,593.0 L911.8,607.0 L912.3,611.0 L921.1,629.0 L914.5,639.0 L914.0,645.0 L922.1,661.0 L921.0,664.6 L911.8,675.0 L909.5,682.0 L910.5,689.0 L916.0,698.5 L917.0,703.0 L911.4,727.0 L910.7,741.0 L912.6,752.0 L920.0,764.0 L921.1,769.0 L917.3,791.0 L916.0,816.7 ZM647.0,783.2 L587.0,783.2 L509.0,677.0 L507.0,676.0 L487.0,675.9 L484.1,677.0 L483.8,681.0 L483.8,745.0 L486.2,766.0 L488.7,771.0 L494.0,775.3 L504.0,778.5 L515.9,779.0 L516.4,783.0 L419.8,783.0 L420.1,779.0 L437.0,777.5 L443.0,774.8 L447.2,771.0 L449.3,768.0 L451.4,761.0 L452.4,743.0 L452.4,593.0 L451.3,577.0 L448.2,568.0 L444.0,563.7 L434.0,559.7 L420.0,559.0 L420.0,554.5 L509.0,554.1 L539.0,555.9 L555.0,558.9 L563.7,562.0 L573.8,568.0 L580.9,574.0 L591.0,586.2 L597.0,602.0 L597.1,623.0 L594.0,633.9 L585.0,648.5 L576.0,657.0 L562.3,665.0 L543.0,671.3 L542.2,673.0 L593.3,744.0 L607.0,760.1 L615.0,767.4 L624.0,772.6 L632.0,775.5 L647.2,779.0 L648.0,782.0 L647.0,783.2 ZM260.0,420.8 L298.9,468.0 L302.0,471.3 L303.0,471.9 L303.7,471.0 L303.9,342.0 L302.5,324.0 L299.3,316.0 L294.9,312.0 L286.0,308.8 L272.0,308.0 L271.8,304.0 L350.0,303.8 L349.6,308.0 L333.0,309.4 L325.0,313.6 L320.6,319.0 L318.6,327.0 L317.7,341.0 L317.8,523.0 L317.1,532.0 L312.0,531.6 L260.0,469.1 L260.0,420.8 ZM754.8,735.0 L777.2,681.0 L778.7,675.0 L693.6,586.0 L689.0,582.3 L691.5,594.0 L725.0,670.7 L725.3,674.0 L729.0,680.0 L750.2,730.0 L754.0,735.6 L754.8,735.0 ZM496.7,666.0 L508.0,665.4 L520.0,663.3 L535.0,657.5 L547.2,648.0 L553.3,640.0 L557.4,631.0 L559.5,622.0 L559.6,608.0 L555.5,593.0 L546.5,580.0 L539.0,573.7 L534.0,571.0 L533.0,569.3 L520.0,566.7 L507.0,566.3 L486.0,569.3 L484.0,571.0 L483.8,664.0 L485.0,665.7 L496.7,666.0 ZM491.4,406.0 L498.0,405.2 L506.0,402.4 L509.9,399.0 L510.5,396.0 L439.5,322.0 L433.0,316.2 L431.8,322.0 L432.1,405.0 L436.0,406.5 L491.4,406.0 Z',
+  'M317.0,532.0 L312.5,532.0 L308.0,527.0 L162.0,351.1 L161.0,353.0 L160.8,362.0 L161.6,507.0 L163.5,514.0 L168.0,519.2 L179.0,523.5 L192.5,524.0 L193.1,528.0 L188.0,529.1 L115.0,528.9 L114.1,526.0 L115.0,523.8 L128.0,523.5 L138.0,519.6 L143.1,515.0 L145.5,509.0 L146.8,491.0 L146.8,333.0 L142.3,327.0 L130.0,315.5 L116.0,309.4 L102.4,308.0 L102.0,303.9 L163.2,304.0 L222.1,375.0 L225.2,379.0 L224.3,380.0 L227.8,382.0 L233.0,387.9 L303.0,471.9 L303.9,468.0 L303.9,342.0 L302.5,324.0 L299.3,316.0 L294.9,312.0 L286.0,308.8 L272.0,308.0 L271.8,304.0 L350.0,303.8 L349.6,308.0 L333.0,309.4 L325.0,313.6 L320.6,319.0 L318.6,327.0 L317.7,341.0 L317.8,528.0 L317.0,532.0 Z',
+  'M647.0,783.2 L587.0,783.2 L509.0,677.0 L507.0,676.0 L487.0,675.9 L484.1,677.0 L483.8,681.0 L483.8,745.0 L486.2,766.0 L488.7,771.0 L494.0,775.3 L504.0,778.5 L515.9,779.0 L516.4,783.0 L419.8,783.0 L420.1,779.0 L437.0,777.5 L443.0,774.8 L447.2,771.0 L449.3,768.0 L451.4,761.0 L452.4,743.0 L452.4,593.0 L451.3,577.0 L448.2,568.0 L444.0,563.7 L434.0,559.7 L420.0,559.0 L420.0,554.5 L509.0,554.1 L539.0,555.9 L555.0,558.9 L563.7,562.0 L573.8,568.0 L580.9,574.0 L591.0,586.2 L597.0,602.0 L597.1,623.0 L594.0,633.9 L585.0,648.5 L576.0,657.0 L562.3,665.0 L543.0,671.3 L542.2,673.0 L593.3,744.0 L607.0,760.1 L615.0,767.4 L624.0,772.6 L632.0,775.5 L647.2,779.0 L648.0,782.0 L647.0,783.2 ZM496.7,666.0 L508.0,665.4 L520.0,663.3 L535.0,657.5 L547.2,648.0 L553.3,640.0 L557.4,631.0 L559.5,622.0 L559.6,608.0 L555.5,593.0 L546.5,580.0 L539.0,573.7 L534.0,571.0 L533.0,569.3 L520.0,566.7 L507.0,566.3 L486.0,569.3 L484.0,571.0 L483.8,664.0 L485.0,665.7 L496.7,666.0 ZM650.0,578.3 L644.0,569.7 L635.0,563.3 L621.0,560.4 L620.2,559.0 L621.0,556.0 L650.0,555.7 L650.0,578.3 Z'
+].map(function(d){ return new Path2D(d); });
+function drawEmblem(ctx, cx, cy, w, color){
+  var B = NERV_EMBLEM_BOX;
+  var h = w * B.h / B.w;
+  ctx.save();
+  ctx.translate(cx - w / 2, cy - h / 2);
+  ctx.scale(w / B.w, w / B.w);
+  ctx.translate(-B.x0, -B.y0);
+  ctx.fillStyle = color;
+  for (var i = 0; i < NERV_EMBLEM_PATHS.length; i++){ ctx.fill(NERV_EMBLEM_PATHS[i], 'evenodd'); }
+  ctx.restore();
+}
+/* ============ 通用工具 ============ */
+function pad(n){ return (n < 10 ? '0' : '') + n; }
+function rand(min, max){ return min + Math.floor(Math.random() * (max - min + 1)); }
+function pick(arr){ return arr[rand(0, arr.length - 1)]; }
+function cn(size, w){ return (w || '900') + ' ' + size + 'px "Shippori Mincho","Noto Serif SC","Songti SC","STSong","SimSun","Yu Mincho","Hiragino Mincho ProN",serif'; }
+function mono(size, w){ return (w || '400') + ' ' + size + 'px "Courier New",monospace'; }
+function ser(size, w){ return (w || '700') + ' ' + size + 'px "Times New Roman","Georgia","Songti SC",serif'; }
+function sans(size, w){ return (w || '900') + ' ' + size + 'px "Arial Black","Helvetica Neue",Arial,sans-serif'; }
+function measureSpaced(text, ls){
+  var w = 0, i;
+  for (i = 0; i < text.length; i++){ w += ctx.measureText(text.charAt(i)).width; }
+  if (text.length > 1){ w += ls * (text.length - 1); }
+  return w;
+}
+function drawSpaced(text, x, y, ls, align){
+  var total = measureSpaced(text, ls);
+  var sx = x, i, prev = ctx.textAlign;
+  if (align === 'center'){ sx = x - total / 2; }
+  else if (align === 'right'){ sx = x - total; }
+  ctx.textAlign = 'left';
+  for (i = 0; i < text.length; i++){
+    ctx.fillText(text.charAt(i), sx, y);
+    sx += ctx.measureText(text.charAt(i)).width + ls;
+  }
+  ctx.textAlign = prev;
+  return total;
+}
+function toast(msg){
+  toastEl.textContent = msg;
+  toastEl.classList.add('show');
+  if (toastTimer){ clearTimeout(toastTimer); }
+  toastTimer = setTimeout(function(){ toastEl.classList.remove('show'); }, 2000);
+}
+function downloadBlob(blob, name){
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url; a.download = name;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a);
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 3000);
+}
+function fileName(prefix, ext){
+  var d = new Date();
+  return prefix + '_' + d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate()) + '_' + pad(d.getHours()) + pad(d.getMinutes()) + '.' + ext;
+}
+function val(id){ return document.getElementById(id).value.replace(/^\s+|\s+$/g, ''); }
+function fitLines(text, maxW, start, min, preferTwo){
+  var size, mid, a, b;
+  for (size = start; size >= min; size -= 2){
+    ctx.font = cn(size);
+    if (preferTwo && text.length > 1){
+      mid = Math.ceil(text.length / 2);
+      a = text.slice(0, mid); b = text.slice(mid);
+      if (ctx.measureText(a).width <= maxW && ctx.measureText(b).width <= maxW){ return { lines: [a, b], size: size }; }
+      if (ctx.measureText(text).width <= maxW){ return { lines: [text], size: size }; }
+    } else {
+      if (ctx.measureText(text).width <= maxW){ return { lines: [text], size: size }; }
+      if (text.length > 1){
+        mid = Math.ceil(text.length / 2);
+        a = text.slice(0, mid); b = text.slice(mid);
+        if (ctx.measureText(a).width <= maxW && ctx.measureText(b).width <= maxW){ return { lines: [a, b], size: size }; }
+      }
+    }
+  }
+  for (size = min; size >= 28; size -= 2){
+    ctx.font = cn(size);
+    if (text.length > 1){
+      mid = Math.ceil(text.length / 2);
+      a = text.slice(0, mid); b = text.slice(mid);
+      if (ctx.measureText(a).width <= maxW && ctx.measureText(b).width <= maxW){ return { lines: [a, b], size: size }; }
+    }
+    if (ctx.measureText(text).width <= maxW){ return { lines: [text], size: size }; }
+  }
+  ctx.font = cn(28);
+  return { lines: [text], size: 28 };
+}
+function drawCorners(W, H){
+  var m = 24, L = 64, t = 8;
+  ctx.fillStyle = C.white;
+  ctx.fillRect(m, m, L, t); ctx.fillRect(m, m, t, L);
+  ctx.fillRect(W - m - L, m, L, t); ctx.fillRect(W - m - t, m, t, L);
+  ctx.fillRect(m, H - m - t, L, t); ctx.fillRect(m, H - m - L, t, L);
+  ctx.fillRect(W - m - L, H - m - t, L, t); ctx.fillRect(W - m - t, H - m - L, t, L);
+}
+function finish(W, H, p, redFlash){
+  var y, g;
+  var off = p * 4;
+  ctx.fillStyle = 'rgba(0,0,0,0.20)';
+  for (y = -4 + off; y < H; y += 4){ ctx.fillRect(0, y, W, 2); }
+  ctx.save();
+  var beat = 1.5 + 1.5 * Math.sin(p * Math.PI * 2);
+  ctx.fillStyle = C.green;
+  ctx.globalAlpha = 0.045;
+  for (y = 0; y < H; y += 6){ ctx.fillRect(0, y, W, 1); }
+  ctx.globalAlpha = 0.035;
+  for (y = beat; y < H; y += 6){ ctx.fillRect(0, y, W, 1); }
+  ctx.restore();
+  ctx.save();
+  var by = H * 0.5 + H * 0.45 * Math.sin(p * Math.PI * 2);
+  g = ctx.createLinearGradient(0, by - 70, 0, by + 70);
+  g.addColorStop(0, 'rgba(51,255,102,0)');
+  g.addColorStop(0.5, 'rgba(51,255,102,0.06)');
+  g.addColorStop(1, 'rgba(51,255,102,0)');
+  ctx.fillStyle = g; ctx.fillRect(0, by - 70, W, 140);
+  ctx.restore();
+  g = ctx.createRadialGradient(W / 2, H / 2, 0, W / 2, H / 2, H * 0.78);
+  g.addColorStop(0, 'rgba(0,0,0,0)');
+  g.addColorStop(0.58, 'rgba(0,0,0,0)');
+  g.addColorStop(1, 'rgba(0,0,0,0.55)');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  var fl = (Math.floor(p * 16) % 2 === 0) ? 0.045 : 0.012;
+  ctx.fillStyle = 'rgba(190,255,210,' + fl + ')';
+  ctx.fillRect(0, 0, W, H);
+  if (redFlash && redFlash > 0){
+    ctx.fillStyle = 'rgba(255,50,50,' + (0.45 * redFlash).toFixed(3) + ')';
+    ctx.fillRect(0, 0, W, H);
+  }
+  ctx.strokeStyle = C.red; ctx.lineWidth = 8;
+  ctx.strokeRect(4, 4, W - 8, H - 8);
+  drawCorners(W, H);
+}
+function drawStripes(x, y, w, h, p){
+  ctx.save();
+  ctx.beginPath(); ctx.rect(x, y, w, h); ctx.clip();
+  ctx.fillStyle = C.black; ctx.fillRect(x, y, w, h);
+  ctx.fillStyle = C.yellow;
+  var S = 24, P = 48, k, x0;
+  var off = p * P;
+  for (k = -2; k <= Math.ceil(w / P) + 2; k++){
+    x0 = x + k * P + off;
+    ctx.beginPath();
+    ctx.moveTo(x0, y); ctx.lineTo(x0 + S, y);
+    ctx.lineTo(x0 + S + h, y + h); ctx.lineTo(x0 + h, y + h);
+    ctx.closePath(); ctx.fill();
+  }
+  ctx.restore();
+}
+function blink(p){ return p < 0.5; }
+function glowBig(text, x, y, blur){
+  ctx.save();
+  ctx.textAlign = 'center';
+  ctx.fillStyle = C.orange;
+  ctx.shadowColor = 'rgba(255,106,43,0.55)'; ctx.shadowBlur = blur * 2.5;
+  ctx.fillText(text, x, y);
+  ctx.shadowColor = C.orange; ctx.shadowBlur = blur;
+  ctx.fillText(text, x, y);
+  ctx.restore();
+}
+function timeStrings(){
+  var d = new Date();
+  var wk = ['SUN','MON','TUE','WED','THU','FRI','SAT'][d.getDay()];
+  var date = 'A.D.' + d.getFullYear() + '.' + pad(d.getMonth() + 1) + '.' + pad(d.getDate()) + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ' ' + wk;
+  var secLeft = 86400 - (d.getHours() * 3600 + d.getMinutes() * 60 + d.getSeconds());
+  var cd = 'T-' + pad(Math.floor(secLeft / 3600)) + ':' + pad(Math.floor(secLeft % 3600 / 60)) + ':' + pad(secLeft % 60);
+  return { date: date, cd: cd };
+}
+function drawLocTime(W, x, y, city){
+  var T = timeStrings();
+  var time = T.date;
+  ctx.save();
+  ctx.font = cn(30);
+  var cw = measureSpaced(city, 3);
+  ctx.font = mono(22);
+  var gap = 22;
+  var tw = measureSpaced(time, 1.5);
+  var sx = x - (cw + gap + tw) / 2;
+  ctx.textAlign = 'left';
+  ctx.fillStyle = C.white; ctx.font = cn(30);
+  var i, cur2 = sx;
+  for (i = 0; i < city.length; i++){ ctx.fillText(city.charAt(i), cur2, y); cur2 += ctx.measureText(city.charAt(i)).width + 3; }
+  ctx.fillStyle = C.gray; ctx.font = mono(22);
+  ctx.fillText('・', cur2 + 4, y);
+  cur2 += 4 + ctx.measureText('・').width + gap - 8;
+  ctx.fillStyle = C.gray; ctx.font = mono(22);
+  for (i = 0; i < time.length; i++){ ctx.fillText(time.charAt(i), cur2, y); cur2 += ctx.measureText(time.charAt(i)).width + 1.5; }
+  ctx.restore();
+}
+function rr(x, y, w, h, r){
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+
+/* ================================================================
+   EVA 风格音效引擎 ▸ Web Audio 全程序合成 ▸ 无任何音频文件
+   音色参考：民防双音警报(515/618Hz)·MAGI终端哔声·盖章闷响·打印齿条
+   ================================================================ */
+var SFX=(function(){
+  var AC=null, master=null, muted=false;
+  var sirenTimer=null, sirenNodes=null;
+  function ctx(){
+    if(muted){ return null; }
+    if(!AC){
+      try{
+        AC=new (window.AudioContext||window.webkitAudioContext)();
+        master=AC.createGain(); master.gain.value=0.5;
+        master.connect(AC.destination);
+      }catch(e){ return null; }
+    }
+    if(AC.state==='suspended'){ AC.resume(); }
+    return AC;
+  }
+  function tone(type,f0,f1,dur,vol,delay){
+    var a=ctx(); if(!a){ return; }
+    var t=a.currentTime+(delay||0);
+    var o=a.createOscillator(), g=a.createGain();
+    o.type=type; o.frequency.setValueAtTime(f0,t);
+    if(f1&&f1!==f0){ o.frequency.exponentialRampToValueAtTime(f1,t+dur); }
+    g.gain.setValueAtTime(0.0001,t);
+    g.gain.exponentialRampToValueAtTime(vol,t+0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+    o.connect(g); g.connect(master);
+    o.start(t); o.stop(t+dur+0.05);
+  }
+  function noise(dur,vol,fc,delay){
+    var a=ctx(); if(!a){ return; }
+    var t=a.currentTime+(delay||0);
+    var len=Math.max(1,Math.floor(a.sampleRate*dur));
+    var buf=a.createBuffer(1,len,a.sampleRate);
+    var d=buf.getChannelData(0),i;
+    for(i=0;i<len;i++){ d[i]=(Math.random()*2-1)*(1-i/len); }
+    var s=a.createBufferSource(); s.buffer=buf;
+    var f=a.createBiquadFilter(); f.type='lowpass'; f.frequency.value=fc||1200;
+    var g=a.createGain(); g.gain.value=vol;
+    s.connect(f); f.connect(g); g.connect(master);
+    s.start(t);
+  }
+  return {
+    ctx:ctx,
+    toggle:function(){ muted=!muted; if(muted){ SFX.sirenStop(); } return muted; },
+    isMuted:function(){ return muted; },
+    beep:function(){ tone('square',1180,1180,0.055,0.10); },
+    click:function(){ tone('triangle',720,520,0.045,0.12); },
+    scan:function(){ tone('sawtooth',320,1500,0.28,0.07); },
+    grant:function(){ tone('sine',659,659,0.14,0.18); tone('sine',988,988,0.22,0.18,0.13); },
+    deny:function(){ tone('square',138,92,0.42,0.16); noise(0.3,0.10,600); },
+    stamp:function(ok){
+      if(ok){ tone('sine',180,90,0.12,0.30); noise(0.05,0.14,2500); }
+      else{ tone('sine',120,55,0.20,0.32); tone('square',98,98,0.16,0.08,0.02); noise(0.08,0.12,1200); }
+    },
+    print:function(){
+      var i; for(i=0;i<9;i++){ tone('square',1500+((i%2)*260),1500,0.028,0.05,i*0.055); }
+    },
+    sirenStart:function(){
+      var a=ctx(); if(!a||sirenTimer){ return; }
+      var o=a.createOscillator(), g=a.createGain();
+      o.type='sawtooth'; o.frequency.value=515;
+      g.gain.value=0.0001;
+      g.gain.linearRampToValueAtTime(0.09,a.currentTime+0.4);
+      o.connect(g); g.connect(master); o.start();
+      var hi=false;
+      sirenNodes={o:o,g:g};
+      sirenTimer=setInterval(function(){
+        hi=!hi;
+        o.frequency.linearRampToValueAtTime(hi?618:515,a.currentTime+0.25);
+      },620);
+    },
+    sirenStop:function(){
+      if(sirenTimer){ clearInterval(sirenTimer); sirenTimer=null; }
+      if(sirenNodes){
+        try{
+          sirenNodes.g.gain.linearRampToValueAtTime(0.0001,sirenNodes.o.context.currentTime+0.5);
+          sirenNodes.o.stop(sirenNodes.o.context.currentTime+0.6);
+        }catch(e){}
+        sirenNodes=null;
+      }
+    }
+  };
+})();
+/* 首次任意触摸解锁音频上下文（浏览器安全策略要求用户手势） */
+document.addEventListener('pointerdown',function(){ SFX.ctx(); },{passive:true});
+(function(){
+  var sbSnd=document.getElementById('sbSnd');
+  if(!sbSnd){ return; }
+  sbSnd.addEventListener('click',function(e){
+    e.stopPropagation();
+    var m=SFX.toggle();
+    sbSnd.textContent=m?'♪ OFF':'♪ ON';
+    sbSnd.style.color=m?'#553a3a':'#6E6E6E';
+  });
+})();
+
+/* ============ 状态栏 ============ */
+var sbClock = document.getElementById('sbClock');
+var sbSync = document.getElementById('sbSync');
+var sbGreet = document.getElementById('sbGreet');
+function tickClock(){
+  var d = new Date();
+  sbClock.textContent = pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+}
+function tickGreet(){
+  var h = new Date().getHours();
+  if (h >= 5 && h < 11){ sbGreet.textContent = 'おはよう ▸ 早安！'; }
+  else if (h >= 11 && h < 18){ sbGreet.textContent = 'こんにちは ▸ 午安！'; }
+  else { sbGreet.textContent = 'こんばんは ▸ 晚安！'; }
+}
+setInterval(tickClock, 1000);
+setInterval(tickGreet, 30000);
+tickClock(); tickGreet();
+sbSync.textContent = 'SYNC ' + Math.round(280 + Math.random() * 220) + '%';
+
+/* ================================================================
+   APP-01 使徒警报
+   ================================================================ */
+var alertApp = (function(){
+  var W = 1080, H = 1080;
+  var LOOP_MS = 1600, GIF_FRAMES = 16, GIF_DELAY = 100, GIF_SIZE = 540;
+  var TPL = ['A', 'B', 'C'];
+  var mode = 'LOOP';
+  var R = { sync:'', code:'', v:['YES','NO','WAIT'] };
+  var el = {
+    txt: document.getElementById('alertTxt'),
+    loc: document.getElementById('alertLoc'),
+    png: document.getElementById('alertPng'),
+    gif: document.getElementById('alertGif')
+  };
+  function roll(){
+    R.sync = (280 + Math.random() * 220).toFixed(1);
+    R.code = 'AP-' + rand(1000, 9999);
+    var opts = ['YES', 'NO', 'WAIT'];
+    R.v = [pick(opts), pick(opts), pick(opts)];
+  }
+  function curText(){
+    var v = val('alertTxt');
+    if (v){ return v; }
+    return (mode === 'C' || mode === 'LOOP') ? '周末补班正常吗' : '周一接近中';
+  }
+  function curLoc(){ return val('alertLoc') || '第三新東京市'; }
+  function drawBottomBar(W2, H2, p){
+    ctx.fillStyle = C.red; ctx.fillRect(8, H2 - 104, W2 - 16, 96);
+    ctx.fillStyle = C.white; ctx.font = cn(40);
+    drawSpaced('警報 ▸ 警報 ▸ 警報', 56, H2 - 56, 4, 'left');
+    ctx.font = mono(30, '700');
+    drawSpaced('LEVEL 1', W2 - 100, H2 - 56, 4, 'right');
+    ctx.beginPath(); ctx.arc(W2 - 48, H2 - 56, 11, 0, Math.PI * 2);
+    ctx.fillStyle = (p < 0.5) ? C.yellow : '#5a4a00'; ctx.fill();
+    ctx.strokeStyle = C.white; ctx.lineWidth = 2; ctx.stroke();
+  }
+  function drawA(p){
+    var T = timeStrings();
+    ctx.fillStyle = C.black; ctx.fillRect(0, 0, W, H);
+    drawStripes(0, 0, W, 64, p);
+    ctx.fillStyle = C.white;
+    ctx.globalAlpha = blink(p) ? 1 : 0.3;
+    ctx.font = mono(28);
+    drawSpaced('WARNING ▸ WARNING ▸ WARNING', W / 2, 112, 9.8, 'center');
+    ctx.globalAlpha = 1;
+    var hw = 700, hh = 580, cx = W / 2, cy = 460, cut = 150;
+    var x0 = cx - hw / 2, x1 = cx + hw / 2, y0 = cy - hh / 2, y1 = cy + hh / 2;
+    var grad = ctx.createLinearGradient(0, y0, 0, y1);
+    grad.addColorStop(0, C.red); grad.addColorStop(1, C.darkred);
+    ctx.beginPath();
+    ctx.moveTo(x0, cy); ctx.lineTo(x0 + cut, y0); ctx.lineTo(x1 - cut, y0);
+    ctx.lineTo(x1, cy); ctx.lineTo(x1 - cut, y1); ctx.lineTo(x0 + cut, y1);
+    ctx.closePath(); ctx.fillStyle = grad; ctx.fill();
+    ctx.save();
+    ctx.globalAlpha = 0.45 + 0.45 * (0.5 + 0.5 * Math.sin(p * Math.PI * 2));
+    ctx.strokeStyle = '#FF5050'; ctx.lineWidth = 6; ctx.stroke();
+    ctx.restore();
+    var t = curText();
+    var fit = fitLines(t, 540, 104, 64, t.length > 6);
+    ctx.fillStyle = C.white; ctx.font = cn(fit.size);
+    var lh = fit.size * 1.18;
+    if (fit.lines.length === 1){ ctx.fillText(fit.lines[0], cx, 420); }
+    else { ctx.fillText(fit.lines[0], cx, 420 - lh / 2); ctx.fillText(fit.lines[1], cx, 420 + lh / 2); }
+    ctx.save();
+    ctx.globalAlpha = 0.7 + 0.3 * (0.5 + 0.5 * Math.sin(p * Math.PI * 2));
+    ctx.strokeStyle = C.white; ctx.lineWidth = 4;
+    ctx.strokeRect(cx - 190, 585, 380, 72);
+    ctx.fillStyle = C.white; ctx.font = cn(40);
+    drawSpaced('非常事態', cx, 621, 20, 'center');
+    ctx.restore();
+    ctx.strokeStyle = C.red; ctx.lineWidth = 2;
+    ctx.strokeRect(cx - 340, 778, 680, 68);
+    ctx.fillStyle = C.white; ctx.font = mono(36);
+    drawSpaced('EMERGENCY CONDITION', cx, 812, 10.8, 'center');
+    drawLocTime(W, cx, 884, curLoc());
+    ctx.fillStyle = C.green; ctx.font = mono(24);
+    drawSpaced('SYNC RATIO ' + R.sync + '% ・ ' + T.cd + ' ・ CODE ' + R.code, cx, 930, 2, 'center');
+    drawBottomBar(W, H, p);
+    finish(W, H, p, 0);
+  }
+  function drawB(p){
+    var T = timeStrings();
+    ctx.fillStyle = C.black; ctx.fillRect(0, 0, W, H);
+    ctx.font = mono(24);
+    ctx.fillStyle = C.orange; drawSpaced('MAGI SYSTEM', 56, 116, 4.8, 'left');
+    ctx.fillStyle = C.gray; drawSpaced('Operational', W - 96, 116, 4.8, 'right');
+    ctx.beginPath(); ctx.arc(W - 62, 116, 9, 0, Math.PI * 2);
+    ctx.fillStyle = blink(p) ? C.red : '#4a0d10'; ctx.fill();
+    ctx.fillStyle = C.gray; drawSpaced('PATTERN: BLUE', 56, H - 176, 4.8, 'left');
+    ctx.fillStyle = C.orange; drawSpaced('A.T. FIELD ACTIVE', W - 56, H - 176, 4.8, 'right');
+    var g1 = 12 + 8 * (0.5 + 0.5 * Math.sin(p * Math.PI * 2));
+    ctx.save();
+    ctx.shadowColor = C.orange; ctx.shadowBlur = g1;
+    ctx.fillStyle = C.orange; ctx.font = mono(36);
+    drawSpaced('Pattern Analysis', W / 2, 250, 14.4, 'center');
+    ctx.restore();
+    ctx.fillStyle = C.gray; ctx.font = mono(22);
+    drawSpaced('Monitoring Target Object', W / 2, 302, 3, 'center');
+    var t = curText();
+    var fit = fitLines(t, 680, 96, 48, t.length > 6);
+    ctx.font = cn(fit.size);
+    var lh = fit.size * 1.2;
+    var boxW = 780, boxH = fit.lines.length * lh + 90;
+    var bx = W / 2 - boxW / 2, by = 560 - boxH / 2;
+    ctx.strokeStyle = C.red; ctx.lineWidth = 2;
+    ctx.save();
+    ctx.globalAlpha = 0.6 + 0.4 * (0.5 + 0.5 * Math.sin(p * Math.PI * 2));
+    ctx.strokeRect(bx, by, boxW, boxH);
+    ctx.restore();
+    var gb = 16 + 10 * (0.5 + 0.5 * Math.sin(p * Math.PI * 2));
+    var ty = by + 45 + lh / 2, i;
+    for (i = 0; i < fit.lines.length; i++){ glowBig(fit.lines[i], W / 2, ty + i * lh, gb); }
+    drawLocTime(W, W / 2, 806, curLoc());
+    ctx.fillStyle = C.green; ctx.font = mono(24);
+    drawSpaced('SYNC RATIO ' + R.sync + '% ・ ' + T.cd + ' ・ CODE ' + R.code, W / 2, 866, 2, 'center');
+    drawBottomBar(W, H, p);
+    finish(W, H, p, 0);
+  }
+  function drawC(p){
+    ctx.fillStyle = C.black; ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = C.red; ctx.fillRect(8, 8, W - 16, 72);
+    ctx.fillStyle = C.white; ctx.font = cn(40);
+    drawSpaced('MAGI SYSTEM ▸ 判定请求', W / 2, 44, 3, 'center');
+    ctx.save();
+    ctx.globalAlpha = 0.92;
+    drawLocTime(W, W / 2, 112, curLoc());
+    ctx.restore();
+    var t = curText(), size = 40;
+    ctx.font = cn(size);
+    while (size > 20 && ctx.measureText(t).width > W - 160){ size -= 2; ctx.font = cn(size); }
+    ctx.fillStyle = C.white; ctx.font = cn(size);
+    ctx.fillText(t, W / 2, 158);
+    var colW = 352, gap = 4, y0 = 196, y1 = 950;
+    var names = ['A-801 MELCHIOR', 'B-242 BALTHASAR', 'C-321 CASPER'];
+    var yesN = 0, noN = 0, waitN = 0, i;
+    for (i = 0; i < 3; i++){
+      var cx0 = 8 + i * (colW + gap);
+      var cxc = cx0 + colW / 2;
+      ctx.fillStyle = 'rgba(255,255,255,0.04)'; ctx.fillRect(cx0, y0, colW, y1 - y0);
+      ctx.strokeStyle = 'rgba(255,255,255,0.07)'; ctx.lineWidth = 1;
+      var gx, gy;
+      for (gx = cx0 + 44; gx < cx0 + colW; gx += 44){ ctx.beginPath(); ctx.moveTo(gx, y0); ctx.lineTo(gx, y1); ctx.stroke(); }
+      for (gy = y0 + 44; gy < y1; gy += 44){ ctx.beginPath(); ctx.moveTo(cx0, gy); ctx.lineTo(cx0 + colW, gy); ctx.stroke(); }
+      ctx.save();
+      ctx.globalAlpha = 0.25;
+      ctx.fillStyle = C.green;
+      ctx.fillRect(cx0 + 8, y0 + p * (y1 - y0), colW - 16, 3);
+      ctx.restore();
+      var v = R.v[i];
+      if (v === 'YES'){ yesN++; } else if (v === 'NO'){ noN++; } else { waitN++; }
+      var col = (v === 'YES') ? C.green : (v === 'NO') ? C.red : C.yellow;
+      ctx.fillStyle = C.red; ctx.font = mono(28);
+      drawSpaced(names[i], cxc, y0 + 60, 2, 'center');
+      var vs = 120;
+      ctx.font = cn(vs);
+      while (vs > 60 && ctx.measureText(v).width > colW - 60){ vs -= 4; ctx.font = cn(vs); }
+      ctx.fillStyle = col; ctx.font = cn(vs);
+      ctx.fillText(v, cxc - 14, 560);
+      if (blink(p)){ ctx.fillRect(cxc + ctx.measureText(v).width / 2 - 4, 516, 14, vs * 0.82); }
+      ctx.beginPath(); ctx.arc(cxc, 650, 13, 0, Math.PI * 2);
+      ctx.fillStyle = col; ctx.fill();
+      ctx.beginPath(); ctx.arc(cxc, 650, 20, 0, Math.PI * 2);
+      ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.stroke();
+      var dots = 1 + Math.floor(p * 3);
+      var s = 'MEASURING';
+      var k;
+      for (k = 0; k < dots; k++){ s += '.'; }
+      ctx.fillStyle = C.gray; ctx.font = mono(22);
+      drawSpaced(s, cxc, 890, 3, 'center');
+    }
+    var verdict = (yesN >= 2) ? '可行' : (noN >= 2) ? '不可行' : '再议';
+    var ratio = (waitN === 0) ? (yesN + ':' + noN) : (yesN + ':' + noN + ':' + waitN);
+    ctx.fillStyle = C.red; ctx.fillRect(8, 976, W - 16, 96);
+    ctx.fillStyle = C.white; ctx.font = cn(40);
+    drawSpaced('多数决 ' + ratio + ' ▸ ' + verdict, W / 2, 1024, 3, 'center');
+    finish(W, H, p, 0);
+  }
+  function renderTpl(tpl, phase){
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    if (tpl === 'A'){ drawA(phase); }
+    else if (tpl === 'B'){ drawB(phase); }
+    else { drawC(phase); }
+  }
+  function renderFrame(masterPhase){
+    if (mode === 'LOOP'){
+      var seg = Math.floor(masterPhase * 3) % 3;
+      renderTpl(TPL[seg], (masterPhase * 3) % 1);
+    } else {
+      renderTpl(mode, masterPhase);
+    }
+  }
+  el.txt.addEventListener('input', function(){ roll(); });
+  (function(){
+    var chips = document.querySelectorAll('#alertChips .chip');
+    var i, j;
+    for (i = 0; i < chips.length; i++){
+      (function(chip){
+        chip.addEventListener('click', function(){
+          mode = chip.getAttribute('data-t');
+          roll();
+          for (j = 0; j < chips.length; j++){ chips[j].classList.remove('active'); }
+          chip.classList.add('active');
+        });
+      })(chips[i]);
+    }
+  })();
+  el.png.addEventListener('click', function(){
+    if (busy){ return; }
+    busy = true;
+    el.png.disabled = true; el.gif.disabled = true;
+    el.png.textContent = '生成中…';
+    var span = (mode === 'LOOP') ? LOOP_MS * 3 : LOOP_MS;
+    renderFrame((Date.now() % span) / span);
+    setTimeout(function(){
+      cv.toBlob(function(blob){
+        if (blob){ downloadBlob(blob, fileName('使徒警报', 'png')); toast('已保存 PNG'); }
+        else { toast('生成失败，请重试'); }
+        busy = false;
+        el.png.disabled = false; el.gif.disabled = false;
+        el.png.textContent = '保存图片';
+      }, 'image/png');
+    }, 60);
+  });
+  el.gif.addEventListener('click', function(){
+    if (busy){ return; }
+    GIFTool.ensure(function(workerURL){
+      if (!workerURL){ toast('GIF 组件加载失败，请联网后重试'); return; }
+      busy = true;
+      el.png.disabled = true; el.gif.disabled = true;
+      el.gif.textContent = '编码中 0%';
+      var seq = [], s, f;
+      if (mode === 'LOOP'){
+        for (s = 0; s < 3; s++){
+          for (f = 0; f < GIF_FRAMES; f++){ seq.push({ tpl: TPL[s], phase: f / GIF_FRAMES }); }
+        }
+      } else {
+        for (f = 0; f < GIF_FRAMES; f++){ seq.push({ tpl: mode, phase: f / GIF_FRAMES }); }
+      }
+      GIFTool.build(seq, GIF_SIZE, GIF_SIZE, GIF_DELAY,
+        function(frameIdx){ renderTpl(seq[frameIdx].tpl, seq[frameIdx].phase); },
+        function(blob){
+          if (blob && blob.size > 0){ downloadBlob(blob, fileName('使徒警报', 'gif')); toast('已导出 GIF（' + Math.round(blob.size / 1024) + 'KB）'); }
+          else { toast('GIF 生成失败，请重试'); }
+          busy = false;
+          el.png.disabled = false; el.gif.disabled = false;
+          el.gif.textContent = '导出 GIF';
+        },
+        el.gif);
+    });
+  });
+  return {
+    activate: function(){ cv.width = W; cv.height = H; roll(); },
+    tick: function(now){
+      var span = (mode === 'LOOP') ? LOOP_MS * 3 : LOOP_MS;
+      renderFrame((now % span) / span);
+    }
+  };
+})();
+
+/* ================================================================
+   APP-02 MAGI 占卜
+   ================================================================ */
+var magiApp = (function(){
+  var W = 1080, H = 1350;
+  var state = 'idle';
+  var answer = ['YES', 'NO', 'WAIT'];
+  var spinStart = 0, finishAt = 0;
+  var STOP = [1300, 2100, 2900];
+  var NAMES = ['A-801 MELCHIOR', 'B-242 BALTHASAR', 'C-321 CASPER'];
+  var POOL = ['YES','YES','NO','NO','WAIT'];
+  var NODES = [[180, 800], [532, 800], [884, 800]];
+  var S = { sync:'', code:'', t:'' };
+  var el = {
+    ask: document.getElementById('askBtn'),
+    png: document.getElementById('magiPng'),
+    gif: document.getElementById('magiGif')
+  };
+  function rollSession(){
+    S.sync = (280 + Math.random() * 220).toFixed(1);
+    S.code = 'MG-' + rand(1000, 9999);
+    S.t = timeStrings().cd;
+  }
+  function curQ(){ return val('magiQ') || '周末补班正常吗'; }
+  function drawNetwork(now){
+    if (state === 'idle'){ return; }
+    var vis = Math.min(1, (now - spinStart) / 600);
+    if (vis <= 0){ return; }
+    var edges = [[0, 1], [1, 2], [0, 2]];
+    var e, a, b, t, px, py;
+    ctx.save();
+    for (e = 0; e < edges.length; e++){
+      a = NODES[edges[e][0]]; b = NODES[edges[e][1]];
+      ctx.globalAlpha = 0.22 * vis;
+      ctx.strokeStyle = C.green; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke();
+      t = ((now * 0.00055) + e * 0.33) % 1;
+      if (t > 0.5){ t = 1 - t; }
+      px = a[0] + (b[0] - a[0]) * t;
+      py = a[1] + (b[1] - a[1]) * t;
+      ctx.globalAlpha = 0.95 * vis;
+      ctx.fillStyle = C.green;
+      ctx.shadowColor = C.green; ctx.shadowBlur = 14;
+      ctx.beginPath(); ctx.arc(px, py, 5, 0, Math.PI * 2); ctx.fill();
+      ctx.shadowBlur = 0;
+      var t2 = Math.max(0, t - 0.04);
+      ctx.globalAlpha = 0.35 * vis;
+      ctx.beginPath(); ctx.arc(a[0] + (b[0] - a[0]) * t2, a[1] + (b[1] - a[1]) * t2, 3, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.restore();
+  }
+  function drawColumn(i, now){
+    var colW = 344, gap = 4, x0 = 8 + i * (colW + gap);
+    var y0 = 300, y1 = 1080;
+    var cxc = x0 + colW / 2;
+    ctx.fillStyle = 'rgba(255,255,255,0.04)'; ctx.fillRect(x0, y0, colW, y1 - y0);
+    ctx.strokeStyle = 'rgba(255,255,255,0.07)'; ctx.lineWidth = 1;
+    var gx, gy;
+    for (gx = x0 + 43; gx < x0 + colW; gx += 43){ ctx.beginPath(); ctx.moveTo(gx, y0); ctx.lineTo(gx, y1); ctx.stroke(); }
+    for (gy = y0 + 43; gy < y1; gy += 43){ ctx.beginPath(); ctx.moveTo(x0, gy); ctx.lineTo(x0 + colW, gy); ctx.stroke(); }
+    ctx.fillStyle = C.red; ctx.font = mono(26);
+    drawSpaced(NAMES[i], cxc, y0 + 52, 2, 'center');
+    var el2 = now - spinStart;
+    if (state === 'spin' && el2 < 500){
+      var bh = (el2 / 500) * (y1 - y0);
+      ctx.fillStyle = 'rgba(51,255,102,0.10)'; ctx.fillRect(x0, y1 - bh, colW, bh);
+      ctx.fillStyle = 'rgba(51,255,102,0.55)'; ctx.fillRect(x0, y1 - bh, colW, 3);
+    }
+    var v, locked = false;
+    if (state === 'idle'){ v = '----'; }
+    else if (state === 'spin'){
+      if (el2 >= STOP[i]){ v = answer[i]; locked = true; }
+      else { v = POOL[(Math.floor(el2 / 90) * 7 + i * 3 + 1) % POOL.length]; }
+    } else { v = answer[i]; locked = true; }
+    var col = (v === 'YES') ? C.green : (v === 'NO') ? C.red : (v === 'WAIT') ? C.orange : C.gray;
+    var vs = 150;
+    ctx.font = cn(vs);
+    while (vs > 60 && ctx.measureText(v).width > colW - 50){ vs -= 6; ctx.font = cn(vs); }
+    ctx.fillStyle = col; ctx.font = cn(vs);
+    ctx.fillText(v, cxc, 660);
+    if (state === 'spin' && !locked){
+      ctx.save();
+      ctx.globalAlpha = 0.3;
+      ctx.fillStyle = C.green;
+      ctx.fillRect(x0 + 8, y0 + ((now % 900) / 900) * (y1 - y0), colW - 16, 4);
+      ctx.restore();
+    }
+    if (locked && state === 'spin' && (el2 - STOP[i]) < 160){
+      ctx.fillStyle = 'rgba(255,255,255,0.5)'; ctx.fillRect(x0, y0, colW, y1 - y0);
+    }
+    var lampOn = state === 'idle' ? false : locked;
+    ctx.beginPath(); ctx.arc(cxc, 800, 13, 0, Math.PI * 2);
+    ctx.fillStyle = lampOn ? col : '#2a2a2a'; ctx.fill();
+    ctx.beginPath(); ctx.arc(cxc, 800, 20, 0, Math.PI * 2);
+    ctx.strokeStyle = lampOn ? col : C.gray; ctx.lineWidth = 2; ctx.stroke();
+    if (lampOn){
+      ctx.save();
+      ctx.globalAlpha = 0.35 + 0.3 * (0.5 + 0.5 * Math.sin((now % 1600) / 1600 * Math.PI * 2));
+      ctx.beginPath(); ctx.arc(cxc, 800, 30, 0, Math.PI * 2);
+      ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.stroke();
+      ctx.restore();
+    }
+    var st = (state === 'idle') ? 'STANDBY' : (state === 'spin') ? (locked ? 'LOCKED' : 'MEASURING…') : 'COMPLETE';
+    ctx.fillStyle = C.gray; ctx.font = mono(20);
+    drawSpaced(st, cxc, 1010, 3, 'center');
+  }
+  function render(now){
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillStyle = C.black; ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = C.red; ctx.fillRect(8, 8, W - 16, 72);
+    ctx.fillStyle = C.white; ctx.font = cn(40);
+    drawSpaced('MAGI SYSTEM ▸ 判定系统', W / 2, 44, 3, 'center');
+    var q = curQ(), size = 44;
+    ctx.font = cn(size);
+    while (size > 20 && measureSpaced(q, 2) > W - 160){ size -= 2; ctx.font = cn(size); }
+    ctx.fillStyle = C.white; ctx.font = cn(size);
+    drawSpaced(q, W / 2, 130, 2, 'center');
+    ctx.strokeStyle = 'rgba(255,255,255,0.25)'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(120, 172); ctx.lineTo(W - 120, 172); ctx.stroke();
+    drawLocTime(W, W / 2, 216, '第三新東京市');
+    drawColumn(0, now); drawColumn(1, now); drawColumn(2, now);
+    drawNetwork(now);
+    if (state === 'spin' && (now - spinStart) >= STOP[2]){
+      state = 'done'; finishAt = now;
+      el.png.disabled = false; el.gif.disabled = false;
+      el.ask.textContent = '再问一次';
+    }
+    var vy = 1170;
+    if (state === 'done'){
+      var yesN = 0, noN = 0, waitN = 0, i;
+      for (i = 0; i < 3; i++){
+        if (answer[i] === 'YES'){ yesN++; }
+        else if (answer[i] === 'NO'){ noN++; }
+        else { waitN++; }
+      }
+      var verdict = (yesN >= 2) ? '可行' : (noN >= 2) ? '不可行' : '再议';
+      var flavor = (verdict === '可行') ? '作戦続行 ▸ GO' : (verdict === '不可行') ? '作戦中止 ▸ NO' : '精査必要 ▸ HOLD';
+      var ratio = (waitN === 0) ? (yesN + ':' + noN) : (yesN + ':' + noN + ':' + waitN);
+      ctx.fillStyle = C.red; ctx.fillRect(8, vy - 52, W - 16, 104);
+      ctx.fillStyle = C.white; ctx.font = cn(46);
+      drawSpaced('多数决 ' + ratio + ' ▸ ' + verdict, W / 2, vy, 3, 'center');
+      ctx.fillStyle = C.orange; ctx.font = mono(26);
+      drawSpaced(flavor, W / 2, vy + 96, 4, 'center');
+      ctx.fillStyle = C.green; ctx.font = mono(22);
+      drawSpaced('SYNC RATIO ' + S.sync + '% ・ ' + S.t + ' ・ CODE ' + S.code, W / 2, vy + 150, 2, 'center');
+    } else {
+      ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.lineWidth = 2;
+      ctx.strokeRect(8, vy - 52, W - 16, 104);
+      ctx.fillStyle = C.gray; ctx.font = cn(34);
+      drawSpaced(state === 'idle' ? 'AWAITING QUESTION ▸ 待机中' : '解析中…', W / 2, vy, 4, 'center');
+    }
+    var rf = (state === 'done' && now - finishAt < 400) ? (1 - (now - finishAt) / 400) : 0;
+    finish(W, H, (now % 1600) / 1600, rf);
+  }
+  el.ask.addEventListener('click', function(){
+    if (state === 'spin'){ return; }
+    rollSession();
+    answer = [pick(POOL), pick(POOL), pick(POOL)];
+    spinStart = Date.now();
+    state = 'spin';
+    el.png.disabled = true; el.gif.disabled = true;
+    el.ask.textContent = '解析中…';
+  });
+  el.png.addEventListener('click', function(){
+    if (busy || state !== 'done'){ return; }
+    busy = true;
+    el.png.disabled = true;
+    el.png.textContent = '生成中…';
+    render(Date.now());
+    setTimeout(function(){
+      cv.toBlob(function(blob){
+        if (blob){ downloadBlob(blob, fileName('MAGI判定', 'png')); toast('已保存结果图'); }
+        else { toast('生成失败，请重试'); }
+        busy = false;
+        el.png.disabled = false;
+        el.png.textContent = '保存结果';
+      }, 'image/png');
+    }, 60);
+  });
+  el.gif.addEventListener('click', function(){
+    if (busy || state !== 'done'){ return; }
+    GIFTool.ensure(function(workerURL){
+      if (!workerURL){ toast('GIF 组件加载失败，请联网后重试'); return; }
+      busy = true;
+      el.png.disabled = true; el.gif.disabled = true; el.ask.disabled = true;
+      el.gif.textContent = '编码中 0%';
+      var GW = 480, GH = 600, BASE = 1000, FRAMES = 36, DELAY = 100;
+      var seq = [], f;
+      for (f = 0; f < FRAMES; f++){ seq.push(BASE + f * DELAY); }
+      var prev = { spinStart: spinStart, finishAt: finishAt };
+      GIFTool.build(seq, GW, GH, DELAY,
+        function(idx){ spinStart = BASE; render(seq[idx]); },
+        function(blob){
+          spinStart = prev.spinStart; finishAt = prev.finishAt;
+          if (blob && blob.size > 0){ downloadBlob(blob, fileName('MAGI判定', 'gif')); toast('已导出动画 GIF（' + Math.round(blob.size / 1024) + 'KB）'); }
+          else { toast('GIF 生成失败，请重试'); }
+          busy = false;
+          el.png.disabled = false; el.gif.disabled = false; el.ask.disabled = false;
+          el.gif.textContent = '导出动画 GIF';
+        },
+        el.gif);
+    });
+  });
+  return {
+    activate: function(){ cv.width = W; cv.height = H; rollSession(); },
+    tick: function(now){ render(now); }
+  };
+})();
+
+/* ================================================================
+   APP-03 标题字卡
+   ================================================================ */
+var titleApp = (function(){
+  var W = 1080, H = 1350;
+  var png = document.getElementById('titlePng');
+  function render(now){
+    var p = (now % 1600) / 1600;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillStyle = C.black; ctx.fillRect(0, 0, W, H);
+    var ep = val('titleEp') || '第 01 話';
+    var t = val('titleTxt') || '使徒、襲来';
+    ctx.strokeStyle = 'rgba(255,255,255,0.6)'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(140, 560); ctx.lineTo(W - 140, 560); ctx.stroke();
+    ctx.fillStyle = C.white; ctx.font = cn(56);
+    drawSpaced(ep, W / 2, 480, 12, 'center');
+    var fit = fitLines(t, 760, 130, 72, t.length > 5);
+    ctx.fillStyle = C.white; ctx.font = cn(fit.size);
+    var lh = fit.size * 1.25;
+    if (fit.lines.length === 1){ ctx.fillText(fit.lines[0], W / 2, 700); }
+    else { ctx.fillText(fit.lines[0], W / 2, 700 - lh / 2); ctx.fillText(fit.lines[1], W / 2, 700 + lh / 2); }
+    ctx.fillStyle = C.gray; ctx.font = mono(26);
+    drawSpaced('EPISODE TITLE CARD', 56, 120, 4.8, 'left');
+    drawSpaced('NEW CHILDREN TERMINAL', W - 56, H - 140, 4.8, 'right');
+    ctx.fillStyle = C.gray; ctx.font = mono(24);
+    drawSpaced(timeStrings().date, W / 2, H - 200, 2, 'center');
+    finish(W, H, p, 0);
+  }
+  png.addEventListener('click', function(){
+    if (busy){ return; }
+    busy = true;
+    png.disabled = true;
+    png.textContent = '生成中…';
+    render(Date.now());
+    setTimeout(function(){
+      cv.toBlob(function(blob){
+        if (blob){ downloadBlob(blob, fileName('标题字卡', 'png')); toast('已保存字卡'); }
+        else { toast('生成失败，请重试'); }
+        busy = false;
+        png.disabled = false;
+        png.textContent = '保存字卡';
+      }, 'image/png');
+    }, 60);
+  });
+  return {
+    activate: function(){ cv.width = W; cv.height = H; },
+    tick: function(now){ render(now); }
+  };
+})();
+
+/* ================================================================
+   APP-04 NERV ID CARD
+   ================================================================ */
+var licenseApp = (function(){
+  var W = 1012, H = 638;
+  var photo = null;
+  var logo = null;
+  var side = 'F';
+  var NERV_RED = '#D0342C';
+  var STRIPE_RED = '#C74A32';
+  try {
+    var savedLogo = localStorage.getItem('nervLogoImg');
+    if (savedLogo){
+      var limg = new Image();
+      limg.onload = function(){ logo = limg; };
+      limg.src = savedLogo;
+    }
+  } catch (e) {}
+  var PRESETS = [
+    { en:'Rei Ayanami', cn2:'绫波丽', kana:'アヤナミ・レイ', no:'1', unit:'EVA-00 零号機', sync:'23.1%', blood:'-', dob:'2001.03.30', color:'#5A8FC4', memo:'SPECIALTY ▸ 揃合', card:'0001-137-22' },
+    { en:'Asuka Langley', cn2:'明日香', kana:'アスカ・ラングレー', no:'2', unit:'EVA-02 弐号機', sync:'32.3%', blood:'A', dob:'2001.12.04', color:'#D42027', memo:'SPECIALTY ▸ 突撃', card:'0002-302-15' },
+    { en:'Shinji Ikari', cn2:'碇真嗣', kana:'イカリ・シンジ', no:'3', unit:'EVA-01 初号機', sync:'41.3%', blood:'A', dob:'2001.06.06', color:'#7B5EA7', memo:'SPECIALTY ▸ 起動', card:'0003-105-42' },
+    { en:'Toji Suzuhara', cn2:'铃原东治', kana:'スズハラ・トウジ', no:'4', unit:'EVA-03 参号機', sync:'18.7%', blood:'O', dob:'2001.08.23', color:'#3A3A3A', memo:'SPECIALTY ▸ 試験', card:'0004-219-77' },
+    { en:'Kaworu Nagisa', cn2:'渚薰', kana:'ナギサ・カヲル', no:'5', unit:'EVA-06 Mark.06', sync:'96.0%', blood:'-', dob:'2000.09.13', color:'#B9B9B9', memo:'SPECIALTY ▸ 自由', card:'0005-235-08' }
+  ];
+  var NUM_CN = ['', '第1適格者', '第2適格者', '第3適格者', '第4適格者', '第5適格者'];
+  var el = {
+    en: document.getElementById('licNameEN'),
+    cn: document.getElementById('licNameCN'),
+    kana: document.getElementById('licKana'),
+    no: document.getElementById('licNo'),
+    unit: document.getElementById('licUnit'),
+    sync: document.getElementById('licSync'),
+    blood: document.getElementById('licBlood'),
+    dob: document.getElementById('licDob'),
+    card: document.getElementById('licCard'),
+    color: document.getElementById('licColor'),
+    memo: document.getElementById('licMemo'),
+    photoBtn: document.getElementById('licPhotoBtn'),
+    photoClr: document.getElementById('licPhotoClr'),
+    photo: document.getElementById('licPhoto'),
+    front: document.getElementById('licFront'),
+    back: document.getElementById('licBack'),
+    both: document.getElementById('licBoth')
+  };
+  function seedNum(s){
+    var h = 0, i;
+    for (i = 0; i < s.length; i++){ h = (h * 31 + s.charCodeAt(i)) >>> 0; }
+    return h;
+  }
+  function prng(seed){
+    var s = seed || 1;
+    return function(){ s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; };
+  }
+  function binN(cardNo, n){
+    var b = (seedNum(cardNo) % Math.pow(2, n)).toString(2);
+    while (b.length < n){ b = '0' + b; }
+    return b;
+  }
+  function playArrow(x, y, s, col){
+    ctx.fillStyle = col;
+    ctx.beginPath();
+    ctx.moveTo(x + s * 0.6, y - s * 0.5);
+    ctx.lineTo(x - s * 0.45, y);
+    ctx.lineTo(x + s * 0.6, y + s * 0.5);
+    ctx.closePath(); ctx.fill();
+    ctx.fillRect(x + s * 0.72, y - s * 0.38, s * 0.16, s * 0.76);
+  }
+  function drawBarcode(x, y, w, h, seedStr){
+    var rnd = prng(seedNum(seedStr + 'BC'));
+    ctx.fillStyle = '#111';
+    var cx2 = x;
+    while (cx2 < x + w - 2){
+      var bw = 2 + Math.floor(rnd() * 4);
+      if (rnd() > 0.32){ ctx.fillRect(cx2, y, bw, h); }
+      cx2 += bw + 1 + Math.floor(rnd() * 3);
+    }
+  }
+  function drawBarsBlock(x, y, w, h, seedStr){
+    ctx.strokeStyle = '#111'; ctx.lineWidth = 5;
+    rr(x, y, w, h, 14); ctx.stroke();
+    var rnd = prng(seedNum(seedStr + 'BAR'));
+    ctx.fillStyle = '#111';
+    var bx = x + 16;
+    while (bx < x + w - 26){
+      var bw = 9 + Math.floor(rnd() * 11);
+      var bh = h * 0.5 + rnd() * h * 0.42;
+      var by = (rnd() > 0.72) ? y + 12 : y + h - bh - 12;
+      rr(bx, by, bw, bh, 4); ctx.fill();
+      bx += bw + 7 + Math.floor(rnd() * 9);
+    }
+  }
+  function drawBitsRow(x, y, digits, boxW, boxH, fs){
+    var i;
+    ctx.font = mono(fs, '700');
+    ctx.textAlign = 'center';
+    for (i = 0; i < digits.length; i++){
+      ctx.strokeStyle = '#111'; ctx.lineWidth = 3;
+      ctx.strokeRect(x + i * (boxW + 5), y, boxW, boxH);
+      ctx.fillStyle = '#111';
+      ctx.fillText(digits.charAt(i), x + i * (boxW + 5) + boxW / 2, y + boxH / 2);
+    }
+  }
+  function nervLogo(cx2, cy2, r, bg){
+    if (logo){ ctx.drawImage(logo, cx2 - r, cy2 - r, r * 2, r * 2); return; }
+    drawEmblem(ctx, cx2, cy2, r * 2, NERV_RED);
+  }
+  function tagline(x, y, lineH, size, col, barH){
+    var lines = ['GOD\'S IN', 'HIS HEAVEN', 'ALL\'S RIGHT', 'WITH THE WORLD'];
+    ctx.fillStyle = col;
+    ctx.fillRect(x, y - lineH * 0.55, size * 0.3, barH);
+    ctx.font = sans(size, '800');
+    ctx.textAlign = 'left';
+    var i;
+    for (i = 0; i < lines.length; i++){ ctx.fillText(lines[i], x + size * 0.6, y + i * lineH); }
+  }
+  function drawFront(){
+    var nameEN = (val('licNameEN') || 'PILOT').toUpperCase();
+    var nameCN = val('licNameCN') || '';
+    var kana = val('licKana') || '';
+    var no = parseInt(el.no.value, 10) || 3;
+    var unit = val('licUnit') || '';
+    var sync = val('licSync') || '';
+    var cardNo = val('licCard') || '0000-000-00';
+    ctx.clearRect(0, 0, W, H);
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    rr(0, 0, W, H, 26);
+    ctx.fillStyle = '#F5F5F1'; ctx.fill();
+    ctx.save();
+    rr(0, 0, W, H, 26); ctx.clip();
+    var ph = { x: 52, y: 46, w: 250, h: 360 };
+    if (photo){
+      var iw = photo.width, ih = photo.height;
+      var sc = Math.max(ph.w / iw, ph.h / ih);
+      var dw = iw * sc, dh = ih * sc;
+      ctx.save();
+      ctx.beginPath(); ctx.rect(ph.x, ph.y, ph.w, ph.h); ctx.clip();
+      ctx.drawImage(photo, ph.x + (ph.w - dw) / 2, ph.y + (ph.h - dh) / 2, dw, dh);
+      ctx.restore();
+    } else {
+      ctx.fillStyle = '#8F8F8F'; ctx.fillRect(ph.x, ph.y, ph.w, ph.h);
+      ctx.fillStyle = 'rgba(0,0,0,0.18)';
+      ctx.beginPath(); ctx.arc(ph.x + ph.w / 2, ph.y + 140, 56, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(ph.x + ph.w / 2, ph.y + 300, 92, Math.PI, Math.PI * 2); ctx.fill();
+    }
+    ctx.textAlign = 'left';
+    ctx.textAlign = 'left';
+    function fitDraw(txt, x, y, maxW, mkFont, start, col, minFs){
+      var fs = start;
+      ctx.font = mkFont(fs);
+      while (ctx.measureText(txt).width > maxW && fs > minFs){ fs -= 1; ctx.font = mkFont(fs); }
+      ctx.fillStyle = col;
+      ctx.fillText(txt, x, y);
+    }
+    fitDraw(cardNo, 56, 442, 284, function(fs){ return mono(fs, '700'); }, 38, '#111', 24);
+    fitDraw(NUM_CN[no] + ' ▸ ' + unit, 56, 484, 284, function(fs){ return cn(fs, '800'); }, 22, '#777', 13);
+    ctx.fillStyle = '#999'; ctx.font = mono(17);
+    ctx.fillText('SYNC ' + sync + '%', 56, 514);
+    ctx.textAlign = 'center';
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#111'; ctx.font = sans(104);
+    ctx.fillText('NERV', 350, 100);
+    ctx.fillStyle = '#D9E6F2'; ctx.fillRect(350, 162, 390, 60);
+    ctx.strokeStyle = '#111'; ctx.lineWidth = 4;
+    ctx.strokeRect(350, 162, 390, 60);
+    if (nameCN){
+      ctx.fillStyle = '#111'; ctx.font = cn(34, '900');
+      ctx.fillText(nameCN, 372, 192);
+    }
+    ctx.fillStyle = '#D9E6F2'; ctx.fillRect(350, 240, 600, 60);
+    ctx.strokeRect(350, 240, 600, 60);
+    ctx.fillStyle = '#111'; ctx.font = cn(28, '800');
+    ctx.fillText(kana, 372, 270);
+    ctx.font = mono(26, '700');
+    ctx.textAlign = 'right';
+    ctx.fillText(nameEN, 932, 271);
+    ctx.textAlign = 'left';
+    drawBarsBlock(350, 322, 306, 200, cardNo);
+    drawBarcode(820, 74, 140, 68, cardNo);
+    drawBitsRow(672, 318, binN(cardNo, 9), 30, 40, 23);
+    nervLogo(878, 448, 76, '#F5F5F1');
+    tagline(660, 448, 19, 13, NERV_RED, 78);
+    ctx.fillStyle = '#111'; ctx.fillRect(0, 540, W, 44);
+    playArrow(56, 610, 26, '#111');
+    ctx.fillStyle = '#111'; ctx.font = sans(27, '800');
+    ctx.fillText('COMUNIDAD NEON GENESIS EVANGELION', 104, 611);
+    ctx.restore();
+    ctx.textAlign = 'center';
+  }
+  function drawBack(){
+    var cardNo = val('licCard') || '0000-000-00';
+    ctx.clearRect(0, 0, W, H);
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    rr(0, 0, W, H, 26);
+    ctx.fillStyle = '#0B0B0B'; ctx.fill();
+    ctx.save();
+    rr(0, 0, W, H, 26); ctx.clip();
+    nervLogo(790, 195, 205, '#0B0B0B');
+    tagline(56, 268, 32, 24, NERV_RED, 132);
+    ctx.fillStyle = NERV_RED; ctx.font = ser(80, '700');
+    ctx.fillText('UN NERV', 58, 428);
+    ctx.fillStyle = 'rgba(255,255,255,0.55)'; ctx.font = mono(17);
+    ctx.fillText('LIC.NO ' + cardNo + ' ▸ 個人ID（身分証明証）', 62, 478);
+    ctx.fillStyle = STRIPE_RED; ctx.fillRect(0, 500, W, 38);
+    playArrow(56, 588, 26, C.white);
+    ctx.fillStyle = C.white; ctx.font = sans(27, '800');
+    ctx.fillText('COMUNIDAD NEON GENESIS EVANGELION', 104, 589);
+    ctx.restore();
+    ctx.textAlign = 'center';
+  }
+  function render(now){
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    if (side === 'F'){ drawFront(); } else { drawBack(); }
+    var fl = (Math.floor((now % 1600) / 100) % 2 === 0) ? 0.02 : 0.008;
+    ctx.fillStyle = 'rgba(190,255,210,' + fl + ')';
+    ctx.fillRect(0, 0, W, H);
+  }
+  function saveSide(which, btn, done){
+    if (busy){ return; }
+    busy = true;
+    btn.disabled = true;
+    var old = btn.textContent;
+    btn.textContent = '生成中…';
+    side = which;
+    render(Date.now());
+    setTimeout(function(){
+      cv.toBlob(function(blob){
+        if (blob){ downloadBlob(blob, fileName(which === 'F' ? 'NERV通行证_正面' : 'NERV通行证_背面', 'png')); toast(which === 'F' ? '已保存正面' : '已保存背面'); }
+        else { toast('生成失败，请重试'); }
+        busy = false;
+        btn.disabled = false; btn.textContent = old;
+        if (done){ done(); }
+      }, 'image/png');
+    }, 80);
+  }
+  el.front.addEventListener('click', function(){ saveSide('F', el.front, null); });
+  el.back.addEventListener('click', function(){ saveSide('B', el.back, null); });
+  el.both.addEventListener('click', function(){
+    saveSide('F', el.both, function(){
+      setTimeout(function(){ saveSide('B', el.both, null); }, 700);
+    });
+  });
+  (function(){
+    var chips = document.querySelectorAll('#licChips .chip');
+    var i, j;
+    for (i = 0; i < chips.length; i++){
+      (function(chip){
+        chip.addEventListener('click', function(){
+          for (j = 0; j < chips.length; j++){ chips[j].classList.remove('active'); }
+          chip.classList.add('active');
+          var p2 = chip.getAttribute('data-p');
+          if (p2 === '9'){ return; }
+          var d = PRESETS[parseInt(p2, 10)];
+          el.en.value = d.en; el.cn.value = d.cn2; el.kana.value = d.kana;
+          el.no.value = d.no; el.unit.value = d.unit; el.sync.value = d.sync;
+          el.blood.value = d.blood; el.dob.value = d.dob; el.color.value = d.color;
+          el.memo.value = d.memo; el.card.value = d.card;
+        });
+      })(chips[i]);
+    }
+  })();
+  (function(){
+    var chips = document.querySelectorAll('#licSides .chip');
+    var i, j;
+    for (i = 0; i < chips.length; i++){
+      (function(chip){
+        chip.addEventListener('click', function(){
+          for (j = 0; j < chips.length; j++){ chips[j].classList.remove('active'); }
+          chip.classList.add('active');
+          side = chip.getAttribute('data-s');
+        });
+      })(chips[i]);
+    }
+  })();
+  el.photoBtn.addEventListener('click', function(){ el.photo.click(); });
+  el.photo.addEventListener('change', function(e){
+    var f = e.target.files && e.target.files[0];
+    if (!f){ return; }
+    var reader = new FileReader();
+    reader.onload = function(ev){
+      var img = new Image();
+      img.onload = function(){ photo = img; toast('照片已载入 ▸ 打进照片框'); };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(f);
+    e.target.value = '';
+  });
+  el.photoClr.addEventListener('click', function(){ photo = null; toast('已清除照片 ▸ 恢复灰底剪影'); });
+  var logoBtn = document.getElementById('licLogoBtn');
+  var logoClr = document.getElementById('licLogoClr');
+  var logoFile = document.getElementById('licLogo');
+  logoBtn.addEventListener('click', function(){ logoFile.click(); });
+  logoFile.addEventListener('change', function(e){
+    var f = e.target.files && e.target.files[0];
+    if (!f){ return; }
+    var reader = new FileReader();
+    reader.onload = function(ev){
+      var img = new Image();
+      img.onload = function(){
+        var LS = 600;
+        var lcv = document.createElement('canvas');
+        lcv.width = LS; lcv.height = LS;
+        var lctx = lcv.getContext('2d');
+        var sc = Math.max(LS / img.width, LS / img.height);
+        var dw = img.width * sc, dh = img.height * sc;
+        lctx.drawImage(img, (LS - dw) / 2, (LS - dh) / 2, dw, dh);
+        try { localStorage.setItem('nervLogoImg', lcv.toDataURL('image/png')); }
+        catch (err) { toast('本机存储不足 ▸ 本次会话内生效'); }
+        logo = lcv;
+        toast('Logo 已载入 ▸ 永久生效');
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(f);
+    e.target.value = '';
+  });
+  logoClr.addEventListener('click', function(){
+    logo = null;
+    try { localStorage.removeItem('nervLogoImg'); } catch (e) {}
+    toast('已恢复矢量叶形');
+  });
+  return {
+    activate: function(){ cv.width = W; cv.height = H; },
+    tick: function(now){ render(now); }
+  };
+})();
+
+/* ================================================================
+   APP-05 AT力场壁纸
+   ================================================================ */
+var atfieldApp = (function(){
+  var W = 1080, H = 1920;
+  var mode = 'O';
+  var COLS = { O:'#FF6A2B', R:'#D42027', B:'#5A8CF0' };
+  var GLOWS = { O:'rgba(255,106,43,', R:'rgba(220,50,50,', B:'rgba(100,140,255,' };
+  var LABEL = { O:'通常展開', R:'覺醒模式', B:'PATTERN BLUE' };
+  var PAT = { O:'ORANGE', R:'RED', B:'BLUE' };
+  var png = document.getElementById('atPng');
+  function octPath(cx, cy, r, rot){
+    ctx.beginPath();
+    var k, a;
+    for (k = 0; k < 8; k++){
+      a = rot + k * Math.PI / 4;
+      if (k === 0){ ctx.moveTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r); }
+      else { ctx.lineTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r); }
+    }
+    ctx.closePath();
+  }
+  function render(now){
+    var p = (now % 2200) / 2200;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillStyle = C.black; ctx.fillRect(0, 0, W, H);
+    var col = COLS[mode], glow = GLOWS[mode];
+    var cx = W / 2, cy = H * 0.42;
+    var main = val('atMain') || '碇真嗣';
+    var sub = val('atSub') || 'A.T. FIELD';
+    var g = ctx.createRadialGradient(cx, cy, 0, cx, cy, 760);
+    g.addColorStop(0, glow + '0.14)');
+    g.addColorStop(1, glow + '0)');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+    ctx.save();
+    ctx.strokeStyle = col;
+    ctx.shadowColor = col; ctx.shadowBlur = 18;
+    var i;
+    for (i = 0; i < 11; i++){
+      var r = 150 + i * 66 + ((p * 66) % 66);
+      var a = (1 - (r - 150) / 780) * 0.85;
+      if (a <= 0.02){ continue; }
+      ctx.globalAlpha = a; ctx.lineWidth = 7;
+      octPath(cx, cy, r, (i % 2) * Math.PI / 8 + p * Math.PI / 24);
+      ctx.stroke();
+    }
+    ctx.restore();
+    ctx.save();
+    ctx.strokeStyle = col; ctx.globalAlpha = 0.14; ctx.lineWidth = 2;
+    for (i = 0; i < 16; i++){
+      var ang = i * Math.PI / 8 + p * Math.PI / 64;
+      ctx.beginPath();
+      ctx.moveTo(cx + Math.cos(ang) * 150, cy + Math.sin(ang) * 150);
+      ctx.lineTo(cx + Math.cos(ang) * 880, cy + Math.sin(ang) * 880);
+      ctx.stroke();
+    }
+    ctx.restore();
+    ctx.save();
+    octPath(cx, cy, 190, 0);
+    ctx.fillStyle = 'rgba(0,0,0,0.72)'; ctx.fill();
+    ctx.strokeStyle = col;
+    ctx.shadowColor = col; ctx.shadowBlur = 26; ctx.lineWidth = 5;
+    octPath(cx, cy, 190, 0); ctx.stroke();
+    ctx.globalAlpha = 0.5; ctx.lineWidth = 2;
+    octPath(cx, cy, 170, 0); ctx.stroke();
+    ctx.restore();
+    var size = 96;
+    ctx.font = cn(size);
+    while (size > 44 && measureSpaced(main, 6) > 300){ size -= 4; ctx.font = cn(size); }
+    ctx.fillStyle = C.white;
+    drawSpaced(main, cx, cy - 14, 6, 'center');
+    ctx.fillStyle = col; ctx.font = mono(26, '700');
+    drawSpaced(sub.toUpperCase(), cx, cy + 72, 4, 'center');
+    ctx.textAlign = 'left';
+    ctx.fillStyle = C.gray; ctx.font = mono(22);
+    drawSpaced('A.T. FIELD ▸ 展開', 56, 120, 4.8, 'left');
+    ctx.textAlign = 'right';
+    drawSpaced(LABEL[mode], W - 56, 120, 4.8, 'right');
+    ctx.textAlign = 'center';
+    ctx.fillStyle = col;
+    ctx.fillRect(8, H - 128, W - 16, 8);
+    ctx.fillStyle = C.gray; ctx.font = mono(22);
+    drawSpaced('PATTERN: ' + PAT[mode] + ' ▸ ' + timeStrings().date, W / 2, H - 76, 2, 'center');
+    finish(W, H, p, 0);
+  }
+  png.addEventListener('click', function(){
+    if (busy){ return; }
+    busy = true;
+    png.disabled = true;
+    png.textContent = '生成中…';
+    render(Date.now());
+    setTimeout(function(){
+      cv.toBlob(function(blob){
+        if (blob){ downloadBlob(blob, fileName('AT力场壁纸', 'png')); toast('已保存壁纸'); }
+        else { toast('生成失败，请重试'); }
+        busy = false;
+        png.disabled = false;
+        png.textContent = '保存壁纸';
+      }, 'image/png');
+    }, 60);
+  });
+  (function(){
+    var chips = document.querySelectorAll('#atChips .chip');
+    var i, j;
+    for (i = 0; i < chips.length; i++){
+      (function(chip){
+        chip.addEventListener('click', function(){
+          mode = chip.getAttribute('data-m');
+          for (j = 0; j < chips.length; j++){ chips[j].classList.remove('active'); }
+          chip.classList.add('active');
+        });
+      })(chips[i]);
+    }
+  })();
+  return {
+    activate: function(){ cv.width = W; cv.height = H; },
+    tick: function(now){ render(now); }
+  };
+})();
+
+/* ================================================================
+   APP-06 使徒袭来倒计时（三栏布局版）
+   ================================================================ */
+var emergencyApp = (function(){
+  var W = 1350, H = 1080;
+  var RED = '#E8351F', ORG = '#F5A623', INK = '#070404';
+  var SPD = { STOP: 0, SLOW: 0.3, NORMAL: 1, RACING: 2.5 };
+  var view = 'RADAR', spd = 'NORMAL';
+  var remain = 300, last = 0;
+  var syncVal = 98;
+  var el = {
+    min: document.getElementById('emMin'),
+    png: document.getElementById('emPng'),
+    reset: document.getElementById('emReset')
+  };
+  function fmt(t, tenth){
+    var m = Math.floor(t / 60), s = Math.floor(t % 60);
+    var base = m + ':' + pad(s);
+    if (tenth){ base += '.' + Math.floor((t * 10) % 10); }
+    return base;
+  }
+  function grid(){
+    ctx.strokeStyle = 'rgba(210,40,30,0.28)';
+    ctx.lineWidth = 1.5;
+    var i;
+    for (i = 1; i < 18; i++){ ctx.beginPath(); ctx.moveTo(i * 75, 0); ctx.lineTo(i * 75, H); ctx.stroke(); }
+    for (i = 1; i < 15; i++){ ctx.beginPath(); ctx.moveTo(0, i * 75); ctx.lineTo(W, i * 75); ctx.stroke(); }
+  }
+  function speedBtns(x, y){
+    var names = ['STOP', 'SLOW', 'NORMAL', 'RACING'];
+    var i, bx = x;
+    for (i = 0; i < 4; i++){
+      var on = (names[i] === spd);
+      ctx.font = mono(24, '700');
+      var w = ctx.measureText(names[i]).width + 44;
+      rr(bx, y, w, 52, 8);
+      ctx.fillStyle = on ? RED : 'rgba(210,40,30,0.12)'; ctx.fill();
+      ctx.strokeStyle = RED; ctx.lineWidth = 2; ctx.stroke();
+      ctx.fillStyle = on ? '#0A0505' : RED;
+      ctx.textAlign = 'center';
+      ctx.fillText(names[i], bx + w / 2, y + 27);
+      bx += w + 14;
+    }
+  }
+  function intExtBlock(x, y, w){
+    ctx.fillStyle = RED; ctx.fillRect(x, y, w, 64);
+    ctx.fillStyle = '#0A0505';
+    ctx.font = cn(36, '900');
+    ctx.textAlign = 'left';
+    ctx.fillText('内部', x + 14, y + 34);
+    ctx.font = sans(17, '800');
+    ctx.fillText('INTERNAL', x + 88, y + 36);
+    ctx.save();
+    ctx.beginPath(); ctx.rect(x + w - 66, y + 7, 58, 50); ctx.clip();
+    ctx.strokeStyle = '#0A0505'; ctx.lineWidth = 8;
+    var s;
+    for (s = -50; s < 70; s += 17){
+      ctx.beginPath();
+      ctx.moveTo(x + w - 66 + s, y + 57);
+      ctx.lineTo(x + w - 66 + s + 36, y + 7);
+      ctx.stroke();
+    }
+    ctx.restore();
+    ctx.fillStyle = ORG; ctx.font = cn(16, '800');
+    ctx.textAlign = 'left';
+    ctx.fillText('主電源供給システム', x + 4, y + 88);
+    ctx.font = mono(11, '700');
+    ctx.fillText('▸ MAIN POWER SUPPLY SYSTEM', x + 4, y + 106);
+    ctx.fillStyle = RED; ctx.fillRect(x, y + 118, w, 76);
+    ctx.fillStyle = '#0A0505';
+    ctx.font = cn(44, '900');
+    ctx.fillText('外部', x + 14, y + 168);
+    ctx.font = sans(22, '800');
+    ctx.fillText('EXTERNAL', x + 100, y + 170);
+  }
+  function syncPanel(x, y, w, now, target){
+    ctx.fillStyle = ORG; ctx.font = mono(13, '700');
+    ctx.textAlign = 'left';
+    ctx.fillText('MONITORED TARGET SUBJECT', x, y);
+    ctx.font = sans(16, '800');
+    var t = target;
+    while (ctx.measureText(t).width > w - 4 && t.length > 4){ t = t.slice(0, -2); }
+    if (t !== target){ t += '…'; }
+    ctx.fillText(t, x, y + 22);
+    var i;
+    for (i = 0; i < 16; i++){
+      var bh = 30 + Math.abs(Math.sin(now * 0.003 + i * 1.7)) * 100;
+      ctx.fillStyle = (i % 4 === 3) ? ORG : RED;
+      ctx.fillRect(x + i * (w / 16) + 2, y + 180 - bh, w / 16 - 5, bh);
+    }
+    ctx.fillStyle = ORG; ctx.font = cn(22, '800');
+    ctx.fillText('シンクロ率', x, y + 218);
+    ctx.textAlign = 'right';
+    ctx.font = sans(34, '900');
+    ctx.fillText(Math.round(syncVal) + '%', x + w, y + 226);
+    ctx.textAlign = 'left';
+    ctx.strokeStyle = ORG; ctx.lineWidth = 3;
+    ctx.beginPath();
+    for (i = 0; i <= w; i += 6){
+      var yy = y + 276 + Math.sin(i * 0.028 + now * 0.004) * 24;
+      if (i === 0){ ctx.moveTo(x + i, yy); } else { ctx.lineTo(x + i, yy); }
+    }
+    ctx.stroke();
+  }
+  function radar(cx, cy, R, phase, label){
+    var i;
+    ctx.strokeStyle = 'rgba(230,60,40,0.85)'; ctx.lineWidth = 2;
+    for (i = 1; i <= 3; i++){
+      ctx.beginPath(); ctx.arc(cx, cy, R * i / 3.4, 0, Math.PI * 2); ctx.stroke();
+    }
+    ctx.beginPath(); ctx.arc(cx, cy, R * 3 / 3.4, 0, Math.PI * 2);
+    ctx.strokeStyle = RED; ctx.lineWidth = 4; ctx.stroke();
+    ctx.fillStyle = RED; ctx.font = mono(15, '700');
+    ctx.textAlign = 'center';
+    for (i = 0; i < 24; i++){
+      var a = i * Math.PI / 12 - Math.PI / 2;
+      var l = (i % 2 === 0) ? 14 : 8;
+      ctx.beginPath();
+      ctx.moveTo(cx + Math.cos(a) * (R + 8), cy + Math.sin(a) * (R + 8));
+      ctx.lineTo(cx + Math.cos(a) * (R + 8 + l), cy + Math.sin(a) * (R + 8 + l));
+      ctx.strokeStyle = RED; ctx.lineWidth = 2; ctx.stroke();
+      if (i % 2 === 0){ ctx.fillText((i * 15) + '', cx + Math.cos(a) * (R + 40), cy + Math.sin(a) * (R + 40)); }
+    }
+    ctx.setLineDash([10, 10]);
+    ctx.strokeStyle = ORG; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(cx, cy, R * 0.62, 0, Math.PI * 2); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.strokeStyle = ORG; ctx.lineWidth = 10;
+    ctx.beginPath(); ctx.arc(cx, cy, R * 0.88, phase, phase + 1.25); ctx.stroke();
+    ctx.fillStyle = ORG;
+    ctx.beginPath(); ctx.arc(cx, cy, 7, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = RED; ctx.lineWidth = 3; ctx.stroke();
+    if (label){
+      ctx.fillStyle = RED; ctx.font = cn(34, '900');
+      ctx.fillText(label, cx + R * 0.4, cy + R + 80);
+    }
+  }
+  function circuit(x, y, now){
+    var s = 7;
+    function rnd(){ s = (s * 16807) % 2147483647; return s / 2147483647; }
+    var i;
+    for (i = 0; i < 7; i++){
+      var yy = y + i * 44;
+      ctx.strokeStyle = (i % 3 === 2) ? ORG : 'rgba(230,60,40,0.8)';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(x, yy);
+      ctx.lineTo(x + 60 + rnd() * 40, yy);
+      ctx.lineTo(x + 100 + rnd() * 60, yy - 26);
+      ctx.lineTo(x + 210 + rnd() * 60, yy - 26);
+      ctx.stroke();
+      ctx.fillStyle = RED; ctx.font = mono(13, '700');
+      ctx.textAlign = 'left';
+      ctx.fillText('0' + (23 + i) + 'j', x + 240 + rnd() * 30, yy - 22);
+      var pt = ((now * 0.0006) + i * 0.14) % 1;
+      ctx.fillStyle = ORG;
+      ctx.beginPath();
+      ctx.arc(x + pt * 260, yy - 26 * Math.min(1, pt * 2), 4, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+  function drawOver(now){
+    if (Math.floor(now / 300) % 2 !== 0){ return; }
+    ctx.save();
+    ctx.textAlign = 'center';
+    ctx.fillStyle = 'rgba(7,4,4,0.85)';
+    ctx.font = cn(110, '900');
+    ctx.fillText('起動限界超過', W / 2, H * 0.88);
+    ctx.restore();
+  }
+  function drawRadar(now){
+    var p = (now % 2400) / 2400;
+    ctx.fillStyle = INK; ctx.fillRect(0, 0, W, H);
+    grid();
+    var i;
+    ctx.fillStyle = RED; ctx.font = mono(16, '700');
+    ctx.textAlign = 'center';
+    for (i = 1; i < 6; i++){ ctx.fillText((i * 5) + '', i * 260, 26); }
+    for (i = 1; i < 5; i++){ ctx.fillText((i * 5) + '', 18, i * 250); }
+    ctx.fillStyle = RED; ctx.font = cn(28, '900');
+    ctx.textAlign = 'left';
+    ctx.fillText('活動限界まで', 56, 76);
+    ctx.fillStyle = ORG; ctx.font = mono(14, '700');
+    ctx.fillText('ACTIVE TIME REMAINING', 262, 76);
+    ctx.save();
+    ctx.fillStyle = RED;
+    ctx.shadowColor = 'rgba(232,53,31,0.6)'; ctx.shadowBlur = 22;
+    ctx.font = '700 170px "Courier New",monospace';
+    ctx.fillText(fmt(remain, true), 50, 268);
+    ctx.restore();
+    speedBtns(56, 344);
+    intExtBlock(700, 48, 290);
+    var target = val('emTarget') || 'EVA-01 Assigned Pilot';
+    syncPanel(1022, 62, 290, now, target);
+    circuit(60, 524, now);
+    radar(690, 740, 185, p * Math.PI * 2, '角度尺');
+    radar(1080, 740, 145, -p * Math.PI * 2 + 2, '');
+    ctx.fillStyle = 'rgba(210,40,30,0.7)';
+    ctx.font = mono(16, '700');
+    ctx.textAlign = 'right';
+    ctx.fillText('OUTTER MAT 06 ▸ NERV FIELD OPS', W - 40, H - 30);
+    ctx.textAlign = 'left';
+    if (remain <= 0){
+      drawOver(now);
+      if (document.getElementById('panel-emergency').classList.contains('on')){ SFX.sirenStart(); }
+    } else { SFX.sirenStop(); }
+    finish(W, H, p, remain <= 0 ? (Math.floor(now / 300) % 2) * 0.9 : 0);
+  }
+  function hexPath(cx, cy, r){
+    ctx.beginPath();
+    var k, a;
+    for (k = 0; k < 6; k++){
+      a = k * Math.PI / 3;
+      var px = cx + Math.cos(a) * r, py = cy + Math.sin(a) * r;
+      if (k === 0){ ctx.moveTo(px, py); } else { ctx.lineTo(px, py); }
+    }
+    ctx.closePath();
+  }
+  /* 【修复②】arrows */
+  function arrows(cx, cy, r, on){
+    ctx.fillStyle = '#0A0505';
+    var dy = r * 0.55, sz = r * 0.26, k, y0;
+    for (k = 0; k < 2; k++){
+      y0 = cy + (k === 0 ? -dy : dy);
+      ctx.beginPath();
+      if (k === 0){
+        ctx.moveTo(cx, y0 - sz); ctx.lineTo(cx - sz, y0 + sz * 0.7); ctx.lineTo(cx + sz, y0 + sz * 0.7);
+      } else {
+        ctx.moveTo(cx, y0 + sz); ctx.lineTo(cx - sz, y0 - sz * 0.7); ctx.lineTo(cx + sz, y0 - sz * 0.7);
+      }
+      ctx.closePath();
+      if (on || k === 0){ ctx.fill(); }
+    }
+  }
+  /* 【修复③】drawHex：欧氏清场215 / 58px倒计时 / 特殊格白名单 */
+  function drawHex(now){
+    var p = (now % 2400) / 2400;
+    ctx.fillStyle = '#050202'; ctx.fillRect(0, 0, W, H);
+    var R = 86, dx = R * 1.5, dy = R * Math.sqrt(3);
+    var center = { x: 640, y: 470 };
+    var col, row;
+    for (col = 0; col < 10; col++){
+      for (row = 0; row < 6; row++){
+        var cx = 90 + col * dx;
+        var cy = 100 + row * dy + (col % 2) * dy / 2;
+        if (cy > H - 40){ continue; }
+        var ddx = cx - center.x, ddy = cy - center.y;
+        if (ddx * ddx + ddy * ddy < 215 * 215){ continue; }
+        hexPath(cx, cy, R - 7);
+        ctx.fillStyle = RED; ctx.fill();
+        var special = (col === 4 && row === 1) || (col === 6 && row === 1)
+                   || (col === 3 && row === 3) || (col === 6 && row === 4);
+        if (special){
+          ctx.fillStyle = '#0A0505';
+          ctx.textAlign = 'center';
+          if (col === 4 && row === 1){
+            ctx.font = cn(24, '900');
+            ctx.fillText('内部', cx, cy - 26);
+            ctx.font = mono(11, '700');
+            ctx.fillText('主電源供給', cx, cy + 2);
+            ctx.fillText('システム', cx, cy + 18);
+          } else if (col === 6 && row === 1){
+            ctx.font = cn(26, '900');
+            var vert = '新機軸', vi;
+            for (vi = 0; vi < vert.length; vi++){
+              ctx.fillText(vert.charAt(vi), cx, cy - 30 + vi * 28);
+            }
+          } else if (col === 3 && row === 3){
+            var b;
+            for (b = 0; b < 6; b++){
+              var bh = 8 + Math.abs(Math.sin(now * 0.004 + b)) * 28;
+              ctx.fillRect(cx - 27 + b * 9, cy + 4 - bh, 5, bh);
+            }
+            ctx.font = mono(9, '700');
+            ctx.fillText('PILOT AUDIO', cx, cy + 20);
+          } else {
+            ctx.font = sans(26, '900');
+            ctx.fillText('NERV', cx, cy + 2);
+          }
+          continue;
+        }
+        var blinkOn = Math.floor(now / 500 + col + row) % 2 === 0;
+        var kind = (col * 7 + row) % 3;
+        if (kind === 0){
+          ctx.fillStyle = '#0A0505';
+          ctx.font = sans(13, '800'); ctx.textAlign = 'center';
+          ctx.fillText('EMERGENCY', cx, cy - R * 0.52);
+          arrows(cx, cy + R * 0.16, R - 26, blinkOn);
+        } else {
+          arrows(cx, cy, R - 14, blinkOn);
+        }
+      }
+    }
+    hexPath(center.x, center.y, 178);
+    ctx.fillStyle = RED; ctx.fill();
+    hexPath(center.x, center.y, 160);
+    ctx.strokeStyle = '#0A0505'; ctx.lineWidth = 3; ctx.stroke();
+    ctx.fillStyle = '#0A0505';
+    ctx.font = mono(13, '700'); ctx.textAlign = 'center';
+    ctx.fillText('EMERGENCY', center.x, center.y - 108);
+    ctx.font = '700 58px "Courier New",monospace';
+    ctx.fillText(fmt(remain, true), center.x, center.y - 28);
+    arrows(center.x, center.y + 62, 92, Math.floor(now / 500) % 2 === 0);
+    ctx.fillStyle = RED;
+    ctx.font = mono(14, '700');
+    ctx.fillText('TIME FLOW ▸ ' + spd, center.x, center.y + 215);
+    if (remain <= 0){
+      drawOver(now);
+      if (document.getElementById('panel-emergency').classList.contains('on')){ SFX.sirenStart(); }
+    } else { SFX.sirenStop(); }
+    finish(W, H, p, remain <= 0 ? (Math.floor(now / 300) % 2) * 0.9 : 0);
+  }
+  function render(now){
+    if (!last){ last = now; }
+    var dt = Math.min(0.2, (now - last) / 1000) * SPD[spd];
+    last = now;
+    if (remain > 0){ remain = Math.max(0, remain - dt); }
+    syncVal = Math.max(80, Math.min(100, syncVal + (Math.random() - 0.48) * 0.6));
+    if (view === 'RADAR'){ drawRadar(now); } else { drawHex(now); }
+  }
+  el.png.addEventListener('click', function(){
+    if (busy){ return; }
+    busy = true;
+    el.png.disabled = true;
+    el.png.textContent = '生成中…';
+    render(Date.now());
+    setTimeout(function(){
+      cv.toBlob(function(blob){
+        if (blob){ downloadBlob(blob, fileName('袭来倒计时', 'png')); toast('已保存'); }
+        else { toast('生成失败，请重试'); }
+        busy = false;
+        el.png.disabled = false;
+        el.png.textContent = '保存图';
+      }, 'image/png');
+    }, 60);
+  });
+  function applyMin(){
+    var m = parseInt(val('emMin'), 10);
+    if (!m || m < 1){ m = 5; }
+    if (m > 99){ m = 99; }
+    remain = m * 60;
+    return m;
+  }
+  el.reset.addEventListener('click', function(){
+    var m = applyMin();
+    toast('活动限界重置 ▸ ' + m + ':00');
+  });
+  el.min.addEventListener('change', function(){
+    var m = applyMin();
+    el.min.value = m + '';
+  });
+  (function(){
+    var i, j;
+    var vchips = document.querySelectorAll('#emViewChips .chip');
+    for (i = 0; i < vchips.length; i++){
+      (function(chip){
+        chip.addEventListener('click', function(){
+          view = chip.getAttribute('data-v');
+          for (j = 0; j < vchips.length; j++){ vchips[j].classList.remove('active'); }
+          chip.classList.add('active');
+        });
+      })(vchips[i]);
+    }
+    var schips = document.querySelectorAll('#emSpdChips .chip');
+    for (i = 0; i < schips.length; i++){
+      (function(chip){
+        chip.addEventListener('click', function(){
+          spd = chip.getAttribute('data-s');
+          for (j = 0; j < schips.length; j++){ schips[j].classList.remove('active'); }
+          chip.classList.add('active');
+        });
+      })(schips[i]);
+    }
+  })();
+  return {
+    activate: function(){ cv.width = W; cv.height = H; applyMin(); last = 0; },
+    tick: function(now){ render(now); }
+  };
+})();
+
+/* ================================================================
+   GIF 共享工具
+   ================================================================ */
+var GIFTool = (function(){
+  var workerURL = null;
+  function ensure(done){
+    if (typeof GIF === 'undefined'){ done(null); return; }
+    if (workerURL){ done(workerURL); return; }
+    try {
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', 'https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.worker.js', true);
+      xhr.onload = function(){
+        if (xhr.status === 200 && xhr.responseText){
+          var blob = new Blob([xhr.responseText], { type: 'application/javascript' });
+          workerURL = URL.createObjectURL(blob);
+          done(workerURL);
+        } else { done(null); }
+      };
+      xhr.onerror = function(){ done(null); };
+      xhr.send();
+    } catch (e) { done(null); }
+  }
+  function build(frames, w, h, delay, drawFrame, done, btn){
+    var gif = new GIF({ workers: 2, quality: 10, width: w, height: h, workerScript: workerURL, repeat: 0 });
+    var fcv = document.createElement('canvas');
+    fcv.width = w; fcv.height = h;
+    var fctx = fcv.getContext('2d');
+    var i;
+    for (i = 0; i < frames.length; i++){
+      drawFrame(i);
+      fctx.drawImage(cv, 0, 0, w, h);
+      gif.addFrame(fctx, { copy: true, delay: delay });
+    }
+    var guard = setTimeout(function(){ try { gif.abort(); } catch (e) {} }, 90000);
+    gif.on('progress', function(pr){ if (btn){ btn.textContent = '编码中 ' + Math.round(pr * 100) + '%'; } });
+    gif.on('finished', function(blob){ clearTimeout(guard); done(blob); });
+    gif.on('abort', function(){ clearTimeout(guard); done(null); });
+    setTimeout(function(){ gif.render(); }, 30);
+  }
+  return { ensure: ensure, build: build };
+})();
+
+
+/* ================================================================
+   v2.0 新增模块 · 均沿用 1.9 的画布/参数板骨架
+   ================================================================ */
+
+/* ---------- MAGI 三贤人表决（全屏弹层，供小卖部等模块调用） ---------- */
+var magiVote = (function(){
+  var host = null, boxes = [], busy = false;
+  function build(){
+    if (host){ return; }
+    host = document.createElement('div');
+    host.id = 'mvHost';
+    host.style.cssText = 'position:fixed;inset:0;z-index:220;background:rgba(0,0,0,.95);display:none;align-items:center;justify-content:center;padding:18px';
+    host.innerHTML =
+      '<div style="width:100%;max-width:400px">' +
+      '<div style="font-family:Courier New,monospace;font-size:12px;line-height:1.8;color:#D42027;font-weight:700">DIRECT LINK ▸ MAGI 01<br>ACCESS MODE: <span style="color:#fff">SUPERUSER</span></div>' +
+      '<div id="mvMotion" style="margin:10px 0 12px;background:#2a0000;border-left:8px solid #D42027;border-right:8px solid #D42027;padding:5px 12px;text-align:center;color:#D42027;font-weight:900;letter-spacing:.12em;font-size:13px">MOTION: ---</div>' +
+      '<div id="mvInfo" style="font-family:Courier New,monospace;font-size:11px;line-height:1.85;color:#FF9C5B;margin-bottom:14px"></div>' +
+      '<div id="mvRow" style="display:flex;gap:10px"></div>' +
+      '<div id="mvResult" style="margin-top:14px;text-align:center;font-weight:900;letter-spacing:.2em;font-size:13px;min-height:22px;color:#33FF66"></div>' +
+      '</div>';
+    document.body.appendChild(host);
+    ['MELCHIOR·1', 'BALTHASAR·2', 'CASPER·3'].forEach(function(nm){
+      var b = document.createElement('div');
+      b.style.cssText = 'flex:1;border:3px solid #33FF66;border-radius:6px;padding:12px 4px;text-align:center;color:#33FF66;min-height:104px';
+      b.innerHTML = '<div class="st" style="font-size:22px;font-weight:900;display:block;margin:8px auto 6px;letter-spacing:.08em">……</div>' +
+                    '<div class="nm" style="font-family:Courier New,monospace;font-size:12px">' + nm + '</div>';
+      document.getElementById('mvRow').appendChild(b);
+      boxes.push(b);
+    });
+  }
+  function run(label, info, cb){
+    build();
+    if (busy){ return; }
+    busy = true;
+    document.getElementById('mvMotion').textContent = 'MOTION: ' + label;
+    document.getElementById('mvInfo').innerHTML = info;
+    var r = document.getElementById('mvResult');
+    r.textContent = ''; r.style.color = '#33FF66';
+    boxes.forEach(function(b){
+      b.style.borderColor = '#33FF66'; b.style.color = '#33FF66';
+      b.querySelector('.st').textContent = '……';
+      b.querySelector('.st').style.opacity = '.35';
+    });
+    host.style.display = 'flex';
+    var verdicts = ['ok', 'ok', Math.random() < 0.82 ? 'ok' : 'deny'];
+    boxes.forEach(function(b, i){
+      setTimeout(function(){
+        var st = b.querySelector('.st');
+        st.style.opacity = '1';
+        if (verdicts[i] === 'ok'){ st.textContent = '承認'; }
+        else {
+          st.textContent = '否定';
+          b.style.borderColor = '#FF3028'; b.style.color = '#FF3028';
+        }
+        SFX.stamp(verdicts[i] === 'ok');
+      }, 700 + i * 620);
+    });
+    setTimeout(function(){
+      var ok = verdicts.filter(function(v){ return v === 'ok'; }).length;
+      if (ok >= 2){ r.textContent = '✓ 表決通過 ▸ ' + ok + ':' + (3 - ok); }
+      else { r.textContent = '✕ 表決否決 ▸ CASPER-3 一時興起'; r.style.color = '#FF3028'; }
+      setTimeout(function(){
+        if (ok >= 2){ SFX.grant(); } else { SFX.deny(); }
+        host.style.display = 'none';
+        busy = false;
+        if (cb){ cb(ok >= 2, verdicts); }
+      }, 1350);
+    }, 700 + 3 * 620 + 420);
+  }
+  return { run: run };
+})();
+
+/* ---------- APP-07 小卖部（ペンペン店長 ▸ 自動販売機 ▸ 隐藏设定小票） ---------- */
+var martApp = (function(){
+  var W = 1080, H = 1080;
+  var RED = C.red, ORG = C.orange, YEL = C.yellow, GRN = C.green;
+  var view = 'SHOP';
+  var cart = [], total = 0, flash = '';
+  var receipt = null, rcDirty = false;
+  var GX0 = 64, GY0 = 420, GW = 128, GH = 176, GPX = 16, GPY = 20;
+  var BX = 700, BY = 340, BW = 340, BH = 560;
+
+  var ITEMS = [
+    { em:'🍮', nm:'布丁',       pr:120, st:'美里 予約', cl:'#F5A623', sp:'can' },
+    { em:'🍜', nm:'杯面',       pr:180, st:'库存 42',   cl:'#FF6A2B', sp:'cup' },
+    { em:'🥤', nm:'彈珠汽水',   pr:90,  st:'库存 14',   cl:'#5A8CF0', sp:'btl' },
+    { em:'🍫', nm:'巧克力',     pr:150, st:'麗 予約',   cl:'#8B5A2B', sp:'bar' },
+    { em:'🍙', nm:'飯糰',       pr:110, st:'库存 8',    cl:'#33FF66', sp:'tri' },
+    { em:'☕', nm:'黑咖啡',     pr:130, st:'葛城 常連', cl:'#B9B9B9', sp:'can' },
+    { em:'⚙️', nm:'六号机咖啡', pr:260, st:'限定 ▸ 薫', cl:'#F5C400', sp:'can', rare:1 },
+    { em:'🔱', nm:'尼龙回旋镖', pr:10,  st:'※非売品',   cl:'#D42027', sp:'boom', rare:1 }
+  ];
+
+  var LOST = [
+    'UN-0001 ▸ SONY 随身听（磁带卡在25/26循环）',
+    'UN-0002 ▸ 黑框眼镜（左镜片裂痕，碇司令的）',
+    'UN-0003 ▸ 白色绷带×数卷（带血迹，已消毒）',
+    'UN-0004 ▸ 红色发绳 ×2',
+    'UN-0005 ▸ 名牌太阳镜（镜片有LCL痕迹）',
+    'UN-0006 ▸ 加持种的西瓜（整只，完好）',
+    'UN-0007 ▸ 香水×1瓶（已用1/3，薄荷味）',
+    'UN-0008 ▸ 暴走的铝棒（推测是东治的）',
+    'UN-0009 ▸ 插花剪×1（保存状态极好）',
+    'UN-0010 ▸ 渚薰的毛巾（白色，气味：无）',
+    'UN-0011 ▸ PEN PEN玩偶（温泉同款，微热）',
+    'UN-0012 ▸ 十字架项链×1（弹痕完好）',
+    'UN-0013 ▸ 人类补完计划申请书（已作废）'
+  ];
+  var EXP = [
+    { id:'EXP-0001', t:'朗基奴斯枪复制版回旋镖测试失败', d:'穿透三面防爆墙和两个咖啡机', s:'已修复（保险柜文件碳化）', r:'战术作战部实习特工' },
+    { id:'EXP-0002', t:'S²机关微缩模型过载启动', d:'产生0.5秒微型黑洞，吸入半杯咖啡及口红一支', s:'已修复（口红除外）', r:'技术开发部第一课' },
+    { id:'EXP-0003', t:'A.T.力场生成器校准错误', d:'食堂展开橙色力场，包裹吃拉面实习生15分钟', s:'已解除（实习生轻微头晕）', r:'特殊监督部' },
+    { id:'EXP-0004', t:'EVA插入栓模拟连接故障', d:'舱门提前弹射，假人射穿天花板', s:'已取出（假人身穿2号机驱动服）', r:'适格者训练中心' },
+    { id:'EXP-0005', t:'MAGI三贤人投票死机', d:'咖啡机预算案YES/NO/WAIT分歧，死机10分钟', s:'手动重启（咖啡机未购）', r:'系统维护部' },
+    { id:'EXP-0006', t:'朗基奴斯枪（真品）轨道偏离', d:'吸收过量太阳能自行加速，脱离地球轨道', s:'漂浮于小行星带（SEELE震怒）', r:'战术作战部（司令默许）' },
+    { id:'EXP-0007', t:'EVA初号机暴走试验（微型）', d:'1:100模型发出咆哮声波，震碎全部玻璃器皿', s:'已清理（含律子博士咖啡杯）', r:'E计划开发组' },
+    { id:'EXP-0008', t:'使徒核心样本辐射泄漏', d:'植物3秒内完成种子→枯萎全程', s:'样本已转移高安保区', r:'生物研究部' },
+    { id:'EXP-0009', t:'NERV标志投影灯故障', d:'半枫叶标志投射云层2分钟，市民恐慌', s:'已澄清（明日报纸头条）', r:'公共关系部' },
+    { id:'EXP-0010', t:'A10神经连接插头误插', d:'新人与2号机短暂同步，空中完成后空翻', s:'已断开（新人称像坐过山车）', r:'适格者训练中心' }
+  ];
+  var THANKS = [
+    '感谢您参与人类补完计划 ▸ 全员融合愉快',
+    '今日のシンクロ率：97% ▸ 明日も宜しく',
+    '危险：请勿将小票靠近 A.T. FIELD',
+    'A.T. FIELD 保持营业中',
+    'WILLE：本店与 SEELE 无关',
+    'HAPPY END 不出售，抱歉'
+  ];
+  var PRIZES = [
+    { w:1,  name:'★ 事故纪念品 ▸ 律子博士咖啡杯碎片（已拼合）', star:true },
+    { w:3,  name:'朗基奴斯枪（尼龙回旋镖版）', star:true },
+    { w:12, name:'渚薰的同款香皂', star:false },
+    { w:12, name:'明日香骂人语音卡（德日双语）', star:false },
+    { w:23, name:'MAGI 三贤人扭蛋（随机一位贤人）', star:false },
+    { w:25, name:'绫波丽味噌汤料包 ×1', star:false },
+    { w:24, name:'LCL 饮用补充液（5ml 试管装）', star:false }
+  ];
+  var LINES = {
+    idle: [
+      { j: 'いらっしゃい ▸ NERV 売店へようこそ',                 c: '欢迎光临 NERV 小卖部。' },
+      { j: '商品は横の棚から選べ。左の自販機を直接叩いてもいい。', c: '从旁边货架挑，或直接点左边贩卖机的货道。' },
+      { j: '清算は MAGI 三賢人の多数決だ。CASPER に気を付けろ。', c: '结算要过 MAGI 三贤人表决，小心 CASPER。' },
+      { j: '¥500 以上買えば、MAGI 伝動の抽選権利が付く。',       c: '满 ¥500 触发 MAGI 传动抽奖。' },
+      { j: 'レシートは下のボタンで PNG に保存できる。記念にどうぞ。', c: '小票可以存成 PNG 带走。' },
+      { j: '今日も安全第一。……何の安全かは、聞くな。',           c: '今天也安全第一。别问是什么安全。' },
+      { j: 'ネルフ厚生部の許可が下りた品しか置いていない。',       c: '本店只卖 NERV 厚生部批准的货。' },
+      { j: '非売品が棚に紛れ込むことがある。見なかったことにしてくれ。', c: '偶尔有非卖品混进货架，当没看见。' }
+    ],
+    add: [
+      { j: 'いい選択だ。',                                       c: '好眼光。' },
+      { j: 'それ、葛城少佐の好物だぞ。',                          c: '那是葛城少佐的最爱。' },
+      { j: '……また増えたな。',                                   c: '……又加了一件。' }
+    ],
+    rare: [
+      { j: 'それ、何故そこにあった？……まあ、いい。',             c: '那玩意怎么会在货架上？……算了。' },
+      { j: '値札は気にするな。付いている値段が正解だ。',           c: '别在意标价，标多少就是多少。' }
+    ],
+    empty: [
+      { j: '何も選んでいないぞ。棚を見ろ。',                      c: '你还没挑东西，看货架。' }
+    ],
+    deny: [
+      { j: 'CASPER が否決した。あの女、今日は機嫌が悪い。',        c: 'CASPER 否决了，那女人今天心情不好。' },
+      { j: '否決 ▸ 金は返ってきている。もう一度行くか？',         c: '已退款，要不要再来一次？' }
+    ],
+    pass: [
+      { j: 'MAGI 通過 ▸ いい買い物だった。',                      c: 'MAGI 通过。不错的采购。' }
+    ],
+    jam: [
+      { j: '紙が詰まったか。東治を呼べ。……蹴れば直る。',         c: '卡纸了。去叫东治来踹一脚。' }
+    ],
+    retry: [
+      { j: '東治が蹴った。直ったぞ。',                            c: '东治踹了一脚，好了。' }
+    ],
+    win: [
+      { j: '当たりだ。……珍しい。',                               c: '中奖了。……稀奇。' }
+    ],
+    ssr: [
+      { j: 'これは律子博士のコーヒーカップの破片だ。黙って持って行け。', c: '这是律子博士的咖啡杯碎片。别说出去。' }
+    ]
+  };
+  var bubble = { t0: 0, kind: 'idle', idx: 0, line: LINES.idle[0], nextAt: 0 };
+  var el = {
+    shelf: document.getElementById('martShelf'),
+    info: document.getElementById('cartInfo'),
+    total: document.getElementById('cartTotal'),
+    pay: document.getElementById('martPay'),
+    clr: document.getElementById('martClr'),
+    png: document.getElementById('martPng'),
+    jam: document.getElementById('martJam'),
+    retry: document.getElementById('martRetry'),
+    lot: document.getElementById('martLot'),
+    rcpt: document.getElementById('rcpt')
+  };
+
+  function pickW(pool){
+    var t = 0, i;
+    for (i = 0; i < pool.length; i++){ t += pool[i].w; }
+    var r = Math.random() * t;
+    for (i = 0; i < pool.length; i++){ r -= pool[i].w; if (r <= 0){ return pool[i]; } }
+    return pool[pool.length - 1];
+  }
+  function pickN(arr, n){
+    var cp = arr.slice(), out = [], i;
+    for (i = 0; i < n && cp.length; i++){ out.push(cp.splice(Math.floor(Math.random() * cp.length), 1)[0]); }
+    return out;
+  }
+  function itemByNm(nm){
+    var i;
+    for (i = 0; i < ITEMS.length; i++){ if (ITEMS[i].nm === nm){ return ITEMS[i]; } }
+    return { nm: nm, pr: 0 };
+  }
+  function setLine(kind){
+    var pool = LINES[kind] || LINES.idle, idx = 0;
+    if (pool.length > 1){
+      idx = Math.floor(Math.random() * pool.length);
+      if (idx === bubble.idx && kind === bubble.kind){ idx = (idx + 1) % pool.length; }
+    }
+    bubble.kind = kind; bubble.idx = idx; bubble.line = pool[idx];
+    bubble.t0 = Date.now();
+    bubble.nextAt = bubble.t0 + bubble.line.j.length * 105 + bubble.line.c.length * 80 + 4200;
+  }
+  function wrapCJK(text, per){
+    var out = [], line = '', i;
+    for (i = 0; i < text.length; i++){
+      line += text.charAt(i);
+      if (line.length >= per){ out.push(line); line = ''; }
+    }
+    if (line){ out.push(line); }
+    return out;
+  }
+  function typeOut(text, dt, ms){
+    var n = Math.floor(dt / ms);
+    if (n < 0){ n = 0; }
+    if (n > text.length){ n = text.length; }
+    return text.slice(0, n);
+  }
+  function shelfHtml(){
+    var h = '';
+    ITEMS.forEach(function(it, i){
+      h += '<button class="item" data-i="' + i + '"><span class="em">' + it.em + '</span>' +
+           '<span class="nm">' + it.nm + '</span>' +
+           '<span class="pr">¥' + it.pr + '</span>' +
+           '<span class="stock">' + it.st + '</span></button>';
+    });
+    return h;
+  }
+  function refresh(){
+    if (el.info){ el.info.textContent = '已选 ' + cart.length + ' 件'; }
+    if (el.total){ el.total.textContent = '¥' + total; }
+    if (el.lot){
+      var okk = total >= 500;
+      el.lot.textContent = okk ? 'MAGI 伝動 ▸ READY ✓ ▸ 満額達成 ▸ 抽選権利獲得' :
+                                ('MAGI 伝動 ▸ LOCK ▸ 还差 ¥' + (500 - total) + ' 触发抽奖');
+      el.lot.className = okk ? 'ok' : '';
+    }
+  }
+  function backToShop(){
+    view = 'SHOP'; receipt = null; rcDirty = false;
+    if (el.png){ el.png.disabled = true; }
+    if (el.jam){ el.jam.classList.remove('on'); }
+    if (el.rcpt){ el.rcpt.classList.remove('on'); }
+    cv.width = W; cv.height = H;
+  }
+  function addToCart(i){
+    var it = ITEMS[i];
+    if (view !== 'SHOP'){ backToShop(); }
+    cart.push(it); total += it.pr;
+    SFX.click();
+    if (it.rare){ setLine('rare'); }
+    else if (Math.random() < 0.3){ setLine('add'); }
+    refresh();
+  }
+
+  /* ---- ペンペン店長：对话气泡 + 企鹅 ---- */
+  function drawBubble(now){
+    var bx = 140, by = 150, bw = 860, bh = 172, L = bubble.line;
+    ctx.save();
+    ctx.fillStyle = 'rgba(6,2,3,.92)';
+    rr(bx, by, bw, bh, 16); ctx.fill();
+    ctx.strokeStyle = RED; ctx.lineWidth = 3;
+    rr(bx, by, bw, bh, 16); ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(828, by + bh - 3); ctx.lineTo(880, by + bh + 32); ctx.lineTo(792, by + bh - 3);
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(6,2,3,.92)'; ctx.fill(); ctx.stroke();
+    ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+    ctx.fillStyle = RED; ctx.font = mono(20, '700');
+    ctx.fillText('ペンペン店長 ▸ 売店主任', bx + 22, by + 26);
+    var dt = now - bubble.t0;
+    if (dt < 0){ dt = 0; }
+    var jl = wrapCJK(typeOut(L.j, dt, 46), 26);
+    ctx.fillStyle = '#fff'; ctx.font = cn(30, '700');
+    var i, yy = by + 68;
+    for (i = 0; i < jl.length && i < 2; i++){ ctx.fillText(jl[i], bx + 22, yy); yy += 38; }
+    var delay = L.j.length * 46 + 240;
+    if (dt > delay){
+      var cl = wrapCJK(typeOut(L.c, dt - delay, 52), 30);
+      ctx.fillStyle = 'rgba(255,255,255,.6)'; ctx.font = cn(21, '700');
+      for (i = 0; i < cl.length && i < 2; i++){ ctx.fillText(cl[i], bx + 22, yy); yy += 28; }
+    }
+    if (Math.floor(now / 420) % 2 === 0){
+      ctx.fillStyle = RED; ctx.font = mono(22, '700');
+      ctx.textAlign = 'right';
+      ctx.fillText('▸', bx + bw - 24, by + bh - 24);
+    }
+    ctx.restore();
+  }
+  function drawBoss(now){
+    var bob = Math.sin(now / 760) * 3;
+    ctx.save();
+    ctx.fillStyle = 'rgba(212,32,39,.055)'; rr(BX, BY, BW, BH, 12); ctx.fill();
+    ctx.strokeStyle = 'rgba(212,32,39,.34)'; ctx.lineWidth = 2; rr(BX, BY, BW, BH, 12); ctx.stroke();
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillStyle = 'rgba(255,255,255,.16)'; ctx.font = mono(22, '700');
+    ctx.fillText('SHOP KEEPER', BX + BW / 2, BY + 34);
+    ctx.translate(0, bob);
+    var cx = 870, cy = 620;
+    ctx.strokeStyle = '#303030'; ctx.lineWidth = 4;
+    ctx.beginPath(); ctx.ellipse(cx, cy, 92, 118, 0, 0, Math.PI * 2); ctx.fillStyle = '#0B0B0B'; ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#EDEDE2';
+    ctx.beginPath(); ctx.ellipse(cx, cy + 22, 58, 88, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#0B0B0B';
+    ctx.beginPath(); ctx.ellipse(cx - 108, cy + 34, 20, 28, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(cx + 108, cy + 34, 20, 28, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.arc(cx - 22, cy - 50, 18, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx + 22, cy - 50, 18, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#111';
+    ctx.beginPath(); ctx.arc(cx - 20, cy - 48, 8, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx + 24, cy - 48, 8, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = ORG;
+    ctx.beginPath(); ctx.moveTo(cx - 15, cy - 18); ctx.lineTo(cx + 15, cy - 18); ctx.lineTo(cx, cy + 6); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = RED; rr(cx - 66, cy + 46, 132, 86, 8); ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,.5)'; ctx.lineWidth = 3; rr(cx - 66, cy + 46, 132, 86, 8); ctx.stroke();
+    ctx.fillStyle = '#fff'; ctx.font = mono(19, '700');
+    ctx.fillText('NERV', cx, cy + 76);
+    ctx.fillStyle = 'rgba(255,255,255,.1)'; ctx.font = mono(13, '700');
+    ctx.fillText('MART STAFF', cx, cy + 104);
+    ctx.strokeStyle = '#EDEDE2'; ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.moveTo(cx - 26, cy - 116); ctx.lineTo(cx - 34, cy - 140);
+    ctx.moveTo(cx, cy - 120); ctx.lineTo(cx, cy - 148);
+    ctx.moveTo(cx + 26, cy - 116); ctx.lineTo(cx + 36, cy - 138);
+    ctx.stroke();
+    ctx.fillStyle = ORG;
+    rr(cx - 46, cy + 128, 42, 15, 7); ctx.fill();
+    rr(cx + 6, cy + 128, 42, 15, 7); ctx.fill();
+    ctx.restore();
+    ctx.fillStyle = '#160608'; rr(BX + 22, 800, BW - 44, 62, 8); ctx.fill();
+    ctx.strokeStyle = RED; ctx.lineWidth = 3; rr(BX + 22, 800, BW - 44, 62, 8); ctx.stroke();
+    ctx.fillStyle = '#1E0508'; rr(BX + 40, 806, BW - 80, 22, 6); ctx.fill();
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillStyle = 'rgba(255,255,255,.42)'; ctx.font = mono(20, '700');
+    ctx.fillText('ペンペン店長 ▸ PENPEN II', BX + BW / 2, 884);
+    ctx.fillStyle = 'rgba(255,255,255,.2)'; ctx.font = mono(15, '700');
+    ctx.fillText('touch me ▸ 戳一下換台詞', BX + BW / 2, 916);
+  }
+
+  /* ---- 自动贩卖机 ---- */
+  function drawGoodShape(sp, col, cx, cy){
+    ctx.fillStyle = col; ctx.strokeStyle = 'rgba(0,0,0,.45)'; ctx.lineWidth = 3;
+    if (sp === 'cup'){
+      rr(cx - 30, cy - 40, 60, 80, 6); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = 'rgba(255,255,255,.5)'; rr(cx - 34, cy - 46, 68, 14, 4); ctx.fill();
+    } else if (sp === 'btl'){
+      rr(cx - 23, cy - 52, 46, 96, 11); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.fillRect(cx - 12, cy - 44, 24, 22);
+      ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.fillRect(cx - 23, cy - 4, 46, 10);
+    } else if (sp === 'bar'){
+      rr(cx - 36, cy - 30, 72, 60, 4); ctx.fill(); ctx.stroke();
+      ctx.strokeStyle = 'rgba(0,0,0,.4)'; ctx.lineWidth = 4;
+      ctx.beginPath(); ctx.moveTo(cx - 12, cy - 30); ctx.lineTo(cx - 12, cy + 30); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(cx + 8, cy - 30); ctx.lineTo(cx + 8, cy + 30); ctx.stroke();
+    } else if (sp === 'tri'){
+      ctx.beginPath(); ctx.moveTo(cx, cy - 48); ctx.lineTo(cx + 40, cy + 42); ctx.lineTo(cx - 40, cy + 42); ctx.closePath();
+      ctx.fill(); ctx.stroke();
+      ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.fillRect(cx - 14, cy + 8, 28, 28);
+    } else if (sp === 'boom'){
+      ctx.strokeStyle = col; ctx.lineWidth = 8;
+      ctx.beginPath(); ctx.moveTo(cx - 38, cy - 32); ctx.lineTo(cx + 38, cy + 4); ctx.lineTo(cx - 38, cy + 40); ctx.stroke();
+      ctx.fillStyle = col;
+      ctx.beginPath(); ctx.arc(cx + 38, cy + 4, 7, 0, Math.PI * 2); ctx.fill();
+    } else {
+      rr(cx - 26, cy - 46, 52, 92, 9); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.fillRect(cx - 17, cy - 38, 34, 20);
+      ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.fillRect(cx - 26, cy - 4, 52, 11);
+    }
+  }
+  function drawMachine(now){
+    var mx = 40, my = 340, mw = 620, mh = 560;
+    var p = (now % 1600) / 1600;
+    var counts = {}, i;
+    for (i = 0; i < cart.length; i++){ counts[cart[i].nm] = (counts[cart[i].nm] || 0) + 1; }
+    ctx.fillStyle = '#120406'; rr(mx, my, mw, mh, 10); ctx.fill();
+    ctx.strokeStyle = RED; ctx.lineWidth = 6; rr(mx, my, mw, mh, 10); ctx.stroke();
+    ctx.fillStyle = '#050505'; ctx.fillRect(mx + 12, my + 16, mw - 24, 44);
+    ctx.fillStyle = (p < 0.5) ? YEL : '#5a4a00';
+    ctx.fillRect(mx + 26, my + 30, 26, 16); ctx.fillRect(mx + mw - 52, my + 30, 26, 16);
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#fff'; ctx.font = mono(24, '700');
+    drawSpaced('NERV MART ▸ 営業中', mx + mw / 2, my + 38, 3, 'center');
+    ctx.strokeStyle = 'rgba(255,255,255,.1)'; ctx.lineWidth = 2;
+    ctx.strokeRect(mx + 12, my + 70, mw - 24, mh - 82);
+    ITEMS.forEach(function(g, k){
+      var c2 = k % 4, row = Math.floor(k / 4);
+      var x = GX0 + c2 * (GW + GPX), y = GY0 + row * (GH + GPY);
+      var sel = counts[g.nm] || 0;
+      ctx.fillStyle = '#050505'; ctx.fillRect(x, y, GW, GH);
+      ctx.strokeStyle = '#3a3a3a'; ctx.lineWidth = 3; ctx.strokeRect(x, y, GW, GH);
+      ctx.strokeStyle = 'rgba(255,255,255,.09)'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(x + 14, y + 132); ctx.lineTo(x + GW - 14, y + 132); ctx.stroke();
+      drawGoodShape(g.sp, g.cl, x + GW / 2, y + 68);
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#ccc'; ctx.font = cn(21, '900');
+      ctx.fillText(g.nm, x + GW / 2, y + 150);
+      ctx.fillStyle = YEL; ctx.font = mono(19, '700');
+      ctx.fillText('¥' + g.pr, x + GW / 2, y + 172);
+      if (sel){
+        ctx.strokeStyle = YEL; ctx.lineWidth = 5; ctx.strokeRect(x, y, GW, GH);
+        ctx.fillStyle = YEL; ctx.font = mono(22, '700');
+        ctx.fillText('×' + sel, x + GW / 2, y + 22);
+      }
+      if (g.rare){
+        ctx.fillStyle = RED; ctx.font = mono(13, '700');
+        ctx.textAlign = 'right';
+        ctx.fillText('限定', x + GW - 8, y + GH - 10);
+      }
+    });
+    var py = mh + my - 92;
+    ctx.fillStyle = '#050505'; ctx.fillRect(mx + 20, py, mw - 40, 74);
+    ctx.strokeStyle = RED; ctx.lineWidth = 3; ctx.strokeRect(mx + 20, py, mw - 40, 74);
+    ctx.textAlign = 'left';
+    ctx.fillStyle = GRN; ctx.font = mono(30, '700');
+    ctx.fillText('CREDIT ▸ ¥' + total, mx + 36, py + 26);
+    ctx.textAlign = 'right';
+    ctx.fillStyle = (total >= 500 && p < 0.5) ? YEL : '#6E6E6E'; ctx.font = mono(19, '700');
+    ctx.fillText('MAGI 伝動 ' + (total >= 500 ? 'READY ✓' : 'LOCK'), mx + mw - 36, py + 24);
+    ctx.fillStyle = RED; rr(mx + 36, py + 42, 92, 24, 6); ctx.fill();
+    ctx.fillStyle = '#0F0F0F'; ctx.font = mono(15, '700'); ctx.textAlign = 'center';
+    ctx.fillText('投币口', mx + 82, py + 55);
+    ctx.textAlign = 'center';
+    ctx.fillStyle = 'rgba(255,255,255,.28)'; ctx.font = mono(15, '700');
+    ctx.fillText('PUSH ▸ 取物口', mx + mw / 2, py + 66);
+  }
+  function drawFooter(now){
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillStyle = GRN; ctx.font = mono(44, '700');
+    ctx.fillText('CREDIT ▸ ¥' + total, W / 2 - 80, 948);
+    ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.font = mono(24, '700');
+    ctx.fillText(cart.length + ' ITEM' + (cart.length === 1 ? '' : 'S'), W / 2 + 210, 952);
+    ctx.globalAlpha = cart.length ? (0.55 + 0.45 * Math.sin(now / 160)) : 1;
+    ctx.fillStyle = cart.length ? GRN : 'rgba(255,255,255,.72)'; ctx.font = mono(26);
+    ctx.fillText(cart.length ? '▸ 請至收銀台投幣' : '▸ 請選購商品', W / 2, 1000);
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = RED; ctx.fillRect(0, 1030, W, 32);
+    ctx.fillStyle = '#fff'; ctx.font = cn(24, '900');
+    drawSpaced('A.T. FIELD 保持营业中', W / 2, 1046, 4, 'center');
+  }
+  function drawStore(now){
+    var p = (now % 2600) / 2600, i;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#0A0303'; ctx.fillRect(0, 0, W, H);
+    ctx.strokeStyle = 'rgba(212,32,39,.15)'; ctx.lineWidth = 2;
+    for (i = 0; i <= W; i += 60){ ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, H); ctx.stroke(); }
+    for (i = 0; i <= H; i += 60){ ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(W, i); ctx.stroke(); }
+    ctx.fillStyle = RED; ctx.fillRect(0, 0, W, 18); ctx.fillRect(0, H - 18, W, 18);
+    ctx.fillStyle = RED; ctx.font = cn(58, '900');
+    ctx.fillText('NERV 売店', W / 2, 60);
+    ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.font = mono(22);
+    drawSpaced('SUPPLY STORE ▸ LEVEL B1', W / 2, 104, 3, 'center');
+    drawBubble(now);
+    drawMachine(now);
+    drawBoss(now);
+    drawFooter(now);
+    finish(W, H, p, 0);
+  }
+
+  /* ---- 卡纸 ---- */
+  function drawJam(now){
+    cv.width = 1080; cv.height = 760;
+    ctx.fillStyle = C.darkred; ctx.fillRect(0, 0, 1080, 760);
+    drawStripes(0, 0, 1080, 44, (now % 1000) / 1000);
+    drawStripes(0, 716, 1080, 44, (now % 1000) / 1000);
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#fff'; ctx.font = cn(74, '900');
+    ctx.fillText('⚠ PAPER JAM', 540, 320);
+    ctx.fillStyle = '#ff9b8a'; ctx.font = mono(28, '700');
+    ctx.fillText('打印纸卡住了 ▸ 已呼叫技师', 540, 424);
+    ctx.fillText('鈴原東治（维修中…）', 540, 470);
+    ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.font = mono(21, '700');
+    ctx.fillText('▸ 右側 Red Panel の RETRY を押せ', 540, 540);
+  }
+
+  /* ---- 长小票 ---- */
+  function drawReceipt(){
+    if (!receipt){ return; }
+    var R = receipt, PW = 680, x = (W - PW) / 2, y = 60, LH = 46, i;
+    function cText(t, size, monoF, bold, col){
+      ctx.fillStyle = col || '#111';
+      ctx.font = monoF ? mono(size, bold ? '700' : '400') : cn(size, bold ? '900' : '700');
+      ctx.textAlign = 'center';
+      ctx.fillText(t, x + PW / 2, y);
+      y += LH;
+    }
+    function cTextL(t, size, bold, col){
+      ctx.fillStyle = col || '#111';
+      ctx.font = cn(size, bold ? '900' : '700');
+      ctx.textAlign = 'left';
+      ctx.fillText(t, x + 36, y);
+      y += LH;
+    }
+    function line(){
+      ctx.fillStyle = '#999'; ctx.fillRect(x + 30, y, PW - 60, 2);
+      y += LH * 0.7;
+    }
+    var TH = 1252 + R.items.length * 46 + (R.lottery ? 138 : 0) + (R.exp ? 230 : 0);
+    cv.width = W; cv.height = Math.max(1700, TH);
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#141414'; ctx.fillRect(0, 0, W, cv.height);
+    var grad = ctx.createLinearGradient(x, 0, x + PW, 0);
+    grad.addColorStop(0, '#E8E8E2'); grad.addColorStop(0.5, '#F5F5F0'); grad.addColorStop(1, '#E8E8E2');
+    ctx.fillStyle = grad; ctx.fillRect(x, 20, PW, cv.height - 40);
+    ctx.fillStyle = 'rgba(0,0,0,0.06)';
+    for (i = 20; i < cv.height - 20; i += 5){ ctx.fillRect(x, i, PW, 1); }
+    y = 92;
+    cText('NERV MART', 46, true, true, '#111');
+    cText('士官小卖部 ▸ 第3新東京市 1号店', 26, false, false, '#333');
+    cText("GOD'S IN HIS HEAVEN.", 18, true, false, '#666');
+    cText("ALL'S RIGHT WITH THE WORLD.", 18, true, false, '#666');
+    line();
+    R.items.forEach(function(it){
+      ctx.fillStyle = '#111'; ctx.font = cn(26, '700');
+      ctx.textAlign = 'left'; ctx.fillText(it.name, x + 36, y);
+      ctx.textAlign = 'right'; ctx.fillText('×' + it.qty, x + PW - 200, y);
+      ctx.font = mono(26, '700'); ctx.fillText('¥' + (it.price * it.qty), x + PW - 36, y);
+      y += LH;
+    });
+    line();
+    ctx.textAlign = 'left'; ctx.fillStyle = '#111'; ctx.font = cn(30, '900');
+    ctx.fillText('合　計', x + 36, y);
+    ctx.textAlign = 'right'; ctx.font = mono(34, '700');
+    ctx.fillText('¥' + R.total, x + PW - 36, y);
+    y += LH;
+    ctx.textAlign = 'left'; ctx.fillStyle = '#666'; ctx.font = cn(18, '700');
+    ctx.fillText('（内 税込）', x + 36, y);
+    y += LH;
+    cText('MAGI 表决 ' + R.vote + ' …… 通过', 26, false, true, RED);
+    cText('レシート発行 ▸ PER VEND No.001', 18, true, false, '#666');
+    line();
+    if (R.lottery){
+      cText('▼ MAGI 伝動抽選槽 ▼', 26, false, true, RED);
+      cText(R.lottery.star ? R.lottery.name : '中奖：' + R.lottery.name, 24, false, true, R.lottery.star ? RED : '#111');
+      cText('（奖品已投入取物口）', 18, false, false, '#666');
+      line();
+    } else {
+      cText('（満 ¥500 で抽選権利）', 20, false, false, '#888');
+      line();
+    }
+    cText('— 本店失物招领公告 —', 24, false, true, '#111');
+    R.losts.forEach(function(l){ cTextL(l, 18, false, '#333'); });
+    line();
+    if (R.exp){
+      cText('▸ 本周异常报告', 26, false, true, RED);
+      cTextL(R.exp.id + ' ▸ ' + R.exp.t, 20, true, RED);
+      cTextL('事故：' + R.exp.d, 18, false, '#333');
+      cTextL('状态：' + R.exp.s, 18, false, '#333');
+      cTextL('责任：' + R.exp.r, 18, false, '#333');
+      line();
+    }
+    var bcSeed = R.code, s2 = 0;
+    for (i = 0; i < bcSeed.length; i++){ s2 = (s2 * 31 + bcSeed.charCodeAt(i)) >>> 0; }
+    var bx2 = x + 90;
+    while (bx2 < x + PW - 90){
+      var bw2 = 3 + (s2 % 4); s2 = (s2 * 1664525 + 1013904223) >>> 0;
+      if (s2 % 100 > 32){ ctx.fillStyle = '#111'; ctx.fillRect(bx2, y, bw2, 90); }
+      bx2 += bw2 + 3 + (s2 % 4);
+    }
+    y += 120;
+    cText(R.code + ' ▸ ' + R.time + ' ▸ ' + R.date, 18, true, false, '#666');
+    line();
+    cText(R.thanks, 24, false, true, '#111');
+    y += 20;
+    cText('PER VEND · 收款机 No.001 · 技术支持：赤木律子', 16, true, false, '#666');
+    cText('担当：ペンペン店長 · NERV 厚生部', 16, true, false, '#666');
+    ctx.fillStyle = '#141414';
+    for (i = 0; i < PW; i += 34){
+      ctx.beginPath();
+      ctx.moveTo(x + i, 20); ctx.lineTo(x + i + 17, 40); ctx.lineTo(x + i + 34, 20);
+      ctx.closePath(); ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(x + i, cv.height - 20); ctx.lineTo(x + i + 17, cv.height - 40); ctx.lineTo(x + i + 34, cv.height - 20);
+      ctx.closePath(); ctx.fill();
+    }
+  }
+
+  function ticket(){
+    var h = '<h4>NERV 売店 ▸ 領収書</h4>';
+    receipt.items.forEach(function(it){
+      var nm = it.name;
+      h += nm + ' ×' + it.qty + ' ' + new Array(Math.max(6, 16 - nm.length * 2)).join('.') +
+           ' ¥' + (it.price * it.qty) + '<br>';
+    });
+    h += '<div class="cut">合計 ¥' + receipt.total + '<br>MAGI 表決 ▸ ' + receipt.vote + '<br>';
+    if (receipt.lottery){ h += '抽選 ▸ ' + receipt.lottery.name + '<br>'; }
+    h += '取引番号 ▸ TR-' + receipt.code + '<br>時刻 ▸ ' + receipt.time + '<br>';
+    receipt.losts.forEach(function(l){ h += '<span style="color:#777">' + l + '</span><br>'; });
+    if (receipt.exp){ h += '<span style="color:#a33">▸ ' + receipt.exp.id + ' ' + receipt.exp.t + '</span><br>'; }
+    h += 'Keep out of reach of Angels.</div><div class="rc-foot">第 3 新東京市 · NERV 厚生部</div>';
+    el.rcpt.innerHTML = h;
+    el.rcpt.classList.add('on');
+  }
+  function makeReceipt(sum, snapshot){
+    var counts = {}, lines = [], k, nm;
+    for (k = 0; k < snapshot.length; k++){ counts[snapshot[k].nm] = (counts[snapshot[k].nm] || 0) + 1; }
+    for (nm in counts){
+      if (counts.hasOwnProperty(nm)){
+        lines.push({ name: nm, qty: counts[nm], price: itemByNm(nm).pr });
+      }
+    }
+    var T = timeStrings();
+    receipt = {
+      items: lines, total: sum, vote: flash,
+      lottery: (sum >= 500) ? pickW(PRIZES) : null,
+      losts: pickN(LOST, 3),
+      exp: (Math.random() < 0.2) ? pickN(EXP, 1)[0] : null,
+      thanks: pickN(THANKS, 1)[0],
+      code: 'NM-' + rand(10000, 99999),
+      time: T.cd, date: T.date
+    };
+  }
+  function showReceipt(){
+    view = 'RECEIPT'; rcDirty = true;
+    el.jam.classList.remove('on');
+    ticket();
+    el.png.disabled = false;
+    SFX.print();
+    if (receipt.lottery && receipt.lottery.w <= 3){ setLine('ssr'); toast('★★ 稀有奖品命中 ▸ 悄声拿走'); }
+    else if (receipt.lottery){ setLine('win'); toast('★ 抽奖命中 ▸ 奖品已投入取物口'); }
+    toast('✓ 购买成功 ▸ 小票已打印');
+  }
+
+  function bind(){
+    if (!el.shelf || el.shelf.getAttribute('data-bind')){ return; }
+    el.shelf.setAttribute('data-bind', '1');
+    el.shelf.innerHTML = shelfHtml();
+    el.shelf.querySelectorAll('.item').forEach(function(b){
+      b.addEventListener('click', function(){
+        var i = +b.getAttribute('data-i');
+        addToCart(i);
+        b.classList.add('sel');
+        setTimeout(function(){ b.classList.remove('sel'); }, 180);
+      });
+    });
+    el.clr.addEventListener('click', function(){
+      cart = []; total = 0; flash = '';
+      backToShop(); SFX.beep();
+      refresh(); toast('已清空购物篮');
+    });
+    el.retry.addEventListener('click', function(){
+      if (view !== 'JAM'){ return; }
+      SFX.beep();
+      setLine('retry');
+      showReceipt();
+    });
+    el.png.addEventListener('click', function(){
+      var b = this;
+      if (busy || view !== 'RECEIPT' || !receipt){ return; }
+      busy = true; b.disabled = true; b.textContent = '生成中…';
+      drawReceipt();
+      setTimeout(function(){
+        cv.toBlob(function(blob){
+          if (blob){ downloadBlob(blob, fileName('NERV小票', 'png')); toast('小票已保存 ▸ PNG'); }
+          else { toast('生成失败，请重试'); }
+          busy = false; b.disabled = false; b.textContent = '保存小票 ▸ PNG';
+        }, 'image/png');
+      }, 60);
+    });
+    el.pay.addEventListener('click', function(){
+      if (!cart.length){ SFX.deny(); setLine('empty'); toast('EMPTY ▸ 请先选购商品'); return; }
+      if (el.pay.disabled || busy){ return; }
+      var snapshot = cart.slice(), sum = total;
+      el.pay.disabled = true;
+      magiVote.run('PURCHASE', 'CODE:258<br>FILE:STORE.SYS<br>金額: ¥' + sum + '<br>件数: ' + snapshot.length, function(pass, v){
+        el.pay.disabled = false;
+        var okN = v.filter(function(z){ return z === 'ok'; }).length;
+        flash = okN + ':' + (3 - okN) + (pass ? ' ▸ 通過' : ' ▸ 否決');
+        if (!pass){
+          flash = ''; SFX.deny(); setLine('deny');
+          toast('✕ MAGI 否决 ▸ 款项已退回');
+          return;
+        }
+        SFX.grant(); setLine('pass');
+        cart = snapshot; total = sum;
+        makeReceipt(sum, snapshot);
+        if (Math.random() < 0.10){
+          view = 'JAM';
+          el.jam.classList.add('on');
+          el.png.disabled = true;
+          if (el.rcpt){ el.rcpt.classList.remove('on'); }
+          setLine('jam'); SFX.deny();
+          toast('⚠ PAPER JAM ▸ 收银机卡纸');
+        } else {
+          showReceipt();
+        }
+        cart = []; total = 0;
+        setTimeout(refresh, 30);
+      });
+    });
+  }
+  cv.addEventListener('click', function(e){
+    if (currentApp !== martApp || view !== 'SHOP' || busy){ return; }
+    var r = cv.getBoundingClientRect();
+    var x = (e.clientX - r.left) / r.width * W;
+    var y = (e.clientY - r.top) / r.height * H;
+    var i, hit = false;
+    for (i = 0; i < ITEMS.length; i++){
+      var col = i % 4, row = Math.floor(i / 4);
+      var gx = GX0 + col * (GW + GPX), gy = GY0 + row * (GH + GPY);
+      if (x >= gx - 10 && x <= gx + GW + 10 && y >= gy - 10 && y <= gy + GH + 10){
+        addToCart(i); hit = true;
+      }
+    }
+    if (!hit && x >= BX && x <= BX + BW && y >= BY && y <= BY + BH){
+      setLine('idle'); SFX.beep();
+    }
+  });
+
+  return {
+    activate: function(){
+      cv.width = W; cv.height = H;
+      cart = []; total = 0; flash = ''; receipt = null; rcDirty = false;
+      view = 'SHOP';
+      if (el.png){ el.png.disabled = true; el.png.textContent = '保存小票 ▸ PNG'; }
+      setLine('idle');
+      bind(); refresh(); backToShop();
+    },
+    tick: function(now){
+      if (busy){ return; }
+      if (view === 'SHOP'){
+        cv.width = W; cv.height = H;
+        if (now > bubble.nextAt && bubble.kind !== 'jam' && bubble.kind !== 'deny'){ setLine('idle'); }
+        drawStore(now);
+      } else if (view === 'RECEIPT'){
+        if (rcDirty){ drawReceipt(); rcDirty = false; }
+      } else {
+        drawJam(now);
+      }
+    }
+  };
+})();
+
+/* ---------- APP-08 都市地图 ---------- */
+var mapApp = (function(){
+  var W = 880, H = 1000;
+  var mctx = null;
+  var PWD = 'ASUKA';              /* 全图统一密码 */
+  var passed = false;             /* 通过一次 ▸ 全部机密区解锁 */
+  var ZONES = [
+    { x:440, y:170, r:92,  name:'第1辖区',  info:'武装大楼群 ▸ 内藏 EVA 发射口' },
+    { x:190, y:350, r:92,  name:'第2辖区',  info:'集光大楼 ▸ 光纤向地下传送阳光' },
+    { x:690, y:350, r:92,  name:'第3辖区',  info:'导弹基地 ▸ 標準-3 對空迎擊' },
+    { x:440, y:530, r:92,  name:'地下鐵道', info:'轨道列车网 ▸ 市民避难所连线' },
+    { x:440, y:800, r:100, name:'NERV總部', info:'MAGI 直連 ▸ 作戰指揮室 ▸ SUPERUSER 模式', core:true },
+    { x:190, y:740, r:74,  name:'中央教條', info:'Lilith 之卵 ▸ 最高機密 ▸ 詳見 APP-09', core:true },
+    { x:690, y:740, r:74,  name:'最終教條', info:'隆基努斯之槍 ▸ EYES ONLY ▸ 詳見 APP-09', core:true }
+  ];
+  var msgEl = null;
+  function msg(html){ if (msgEl){ msgEl.innerHTML = html; } }
+
+  function draw(now){
+    var m = mctx;
+    if (!m){ return; }
+    m.fillStyle = '#0A0303'; m.fillRect(0, 0, W, H);
+    m.strokeStyle = 'rgba(179,38,30,.14)'; m.lineWidth = 1;
+    var i;
+    for (i = 0; i <= W; i += 44){ m.beginPath(); m.moveTo(i, 0); m.lineTo(i, H); m.stroke(); }
+    for (i = 0; i <= H; i += 44){ m.beginPath(); m.moveTo(0, i); m.lineTo(W, i); m.stroke(); }
+    m.strokeStyle = passed ? 'rgba(51,255,102,.30)' : 'rgba(179,38,30,.35)';
+    m.lineWidth = 2; m.setLineDash([8, 8]);
+    ZONES.forEach(function(z){
+      if (!z.core){ return; }
+      m.beginPath(); m.moveTo(440, 800); m.lineTo(z.x, z.y); m.stroke();
+    });
+    m.setLineDash([]);
+    ZONES.forEach(function(z){
+      var locked = !passed;
+      m.beginPath(); m.arc(z.x, z.y, z.r, 0, Math.PI * 2);
+      m.strokeStyle = locked ? C.red : C.green;
+      m.fillStyle = locked ? 'rgba(212,32,39,.16)' : 'rgba(51,255,102,.10)';
+      m.fill(); m.lineWidth = 3; m.stroke();
+      m.textAlign = 'center'; m.textBaseline = 'middle';
+      if (locked){
+        m.save(); m.beginPath(); m.arc(z.x, z.y, z.r, 0, Math.PI * 2); m.clip();
+        m.strokeStyle = 'rgba(212,32,39,.45)'; m.lineWidth = 2;
+        for (var k = -z.r; k < z.r * 2; k += 16){
+          m.beginPath(); m.moveTo(z.x + k, z.y - z.r); m.lineTo(z.x + k + z.r * 2, z.y + z.r); m.stroke();
+        }
+        m.restore();
+        m.fillStyle = '#FF5040'; m.font = mono(34, '700');
+        m.fillText('▣', z.x, z.y);
+      } else {
+        m.fillStyle = C.green; m.font = mono(30, '700');
+        m.fillText('◉', z.x, z.y);
+      }
+      m.fillStyle = locked ? '#FF5040' : C.green;
+      m.font = cn(26, '900');
+      m.fillText(z.name, z.x, z.y + z.r + 26);
+      m.textAlign = 'left';
+    });
+    var sy = (now % 3000) / 3000 * H;
+    var g = m.createLinearGradient(0, sy - 40, 0, sy + 40);
+    g.addColorStop(0, passed ? 'rgba(51,255,102,0)' : 'rgba(51,255,102,0)');
+    g.addColorStop(.5, 'rgba(51,255,102,.20)');
+    g.addColorStop(1, 'rgba(51,255,102,0)');
+    m.fillStyle = g; m.fillRect(0, sy - 40, W, 80);
+    m.fillStyle = 'rgba(255,255,255,.35)'; m.font = mono(20);
+    m.fillText('TOKYO-3 ▸ GEO FRONT 断面圖', 24, 34);
+    m.fillStyle = passed ? 'rgba(51,255,102,.7)' : 'rgba(255,80,64,.8)'; m.font = mono(20, '700');
+    m.fillText(passed ? 'ACCESS ▸ AUTHORIZED' : 'ACCESS ▸ LOCKED ▸ タップで認証', W - 380, H - 30);
+  }
+
+  function hit(mx, my){
+    for (var i = ZONES.length - 1; i >= 0; i--){
+      var z = ZONES[i];
+      if ((mx - z.x) * (mx - z.x) + (my - z.y) * (my - z.y) <= z.r * z.r){ return z; }
+    }
+    return null;
+  }
+
+  function ask(z){
+    var p = prompt('▌ ' + z.name + ' ▸ 認証要求\nアクセスコード入力\nHINT ▸ 第2適格者的名');
+    if (p === null){ msg('認証已取消 ▸ ' + z.name + ' 仍是加密状态。'); return; }
+    if (p.replace(/\s+/g, '').toUpperCase() === PWD){
+      passed = true;
+      msg('<b>' + z.name + ' ▸ 解鎖成功</b><br>' + z.info + '<br><span style="color:#F5C400">全図解锁 ▸ 辖区一览已开放，任意地点可再次查看。</span>');
+      SFX.grant();
+      toast('✓ ACCESS GRANTED ▸ 全図解锁');
+    } else {
+      msg('<b style="color:#FF5040">ACCESS DENIED</b> ▸ アクセスコード不符<br>已記錄未授權訪問（通知赤木博士）；提示 ▸ 第2適格者的名');
+      toast('✕ ACCESS DENIED');
+      SFX.deny();
+    }
+  }
+
+  function bind(){
+    var cvs = document.getElementById('mapCv');
+    if (!cvs || cvs.getAttribute('data-bind')){ return; }
+    cvs.setAttribute('data-bind', '1');
+    mctx = cvs.getContext('2d');
+    msgEl = document.getElementById('mapMsg');
+    function tap(e){
+      if (e){ e.preventDefault(); }
+      var rc = cvs.getBoundingClientRect();
+      var src2 = (e && e.touches && e.touches[0]) ? e.touches[0] : e;
+      var mx = (src2.clientX - rc.left) * W / rc.width;
+      var my = (src2.clientY - rc.top) * H / rc.height;
+      var z = hit(mx, my);
+      if (!z){ msg('未勘测区域 ▸ 地面化计划进行中，暂无档案。'); return; }
+      if (!passed){ ask(z); return; }
+      msg('<b>' + z.name + '</b> ▸ ' + z.info);
+      SFX.click();
+    }
+    cvs.addEventListener('click', tap);
+    cvs.addEventListener('touchstart', tap, { passive:false });
+    var rst = document.getElementById('mapReset');
+    if (rst){
+      rst.addEventListener('click', function(){
+        passed = false;
+        msg('全図已上锁 ▸ 再次点击任意辖区需重新认证。');
+        SFX.deny();
+        toast('地图已复位 ▸ 重新上锁');
+      });
+    }
+  }
+  return {
+    activate: function(){ bind(); },
+    tick: function(now){ draw(now); }
+  };
+})();
+
+/* ---------- APP-09 机密记事 ---------- */
+var notebookApp = (function(){
+  var PERM_KEY = 'nervNbPerm';
+  var authed = false, perm = 0, stop = false, rafId = 0;
+  var DATA = {
+    overview: { title:'NERV 總覽', perm:0, rows:[
+      ['組織全稱', '聯合國直屬特務機關 NERV（德語「神經」）'],
+      ['前身', 'GEHIRN（人工進化研究所）'],
+      ['最高司令', '碇源堂 ▸ 副司令 冬月耕造'],
+      ['核心任務', '消滅使徒 ▸ 執行人類補完計劃'],
+      ['標語', "God's in his heaven. All's right with the world."]
+    ]},
+    episodes: { title:'劇情檔案 TV 1-26話', perm:3, rows:[
+      ['第1話', '使徒、襲来 ▸ 真嗣初駕駛初號機'],
+      ['第2話', '見知らぬ天井 ▸ 初號機暴走'],
+      ['第6話', '決戰、第3新東京市 ▸ 屋島作戰'],
+      ['第8話', 'アスカ、来日 ▸ 二號機登場'],
+      ['第9話', '瞬間、心、重ねて ▸ 舞蹈作戰'],
+      ['第13話', '使徒、侵入 ▸ IREUL 侵蝕 MAGI'],
+      ['第18話', '命の選択を ▸ 三號機事件'],
+      ['第19話', '男の戦い ▸ S2機關獲得'],
+      ['第23話', '涙 ▸ 綾波自爆'],
+      ['第24話', '最後のシ者 ▸ 渚薰登場'],
+      ['第26話', '世界の中心でアイを叫んだ ▸ 補完']
+    ]},
+    pilots: { title:'適格者檔案（絕密）', perm:4, rows:[
+      ['綾波麗', '第1適格者 ▸ 零號機 ▸ 莉莉絲克隆體 ▸ 同步 23.1%'],
+      ['明日香', '第2適格者 ▸ 二號機 ▸ 日德混血 ▸ 同步 32.3%'],
+      ['碇真嗣', '第3適格者 ▸ 初號機 ▸ 碇源堂之子 ▸ 同步 41.3%'],
+      ['鈴原東治', '第4適格者 ▸ 三號機 ▸ 第13使徒寄生重傷'],
+      ['渚薰', '第5適格者 ▸ 第17使徒 ▸ 同步 96.0% ▸ 被真嗣殺死']
+    ]},
+    organizations: { title:'機構設定', perm:3, rows:[
+      ['SEELE', '秘密組織 ▸ 死海文書執行者 ▸ 12人委員會'],
+      ['NERV', '表面消滅使徒 ▸ 實際執行補完計劃'],
+      ['Marduk 機關', '適格者選拔 ▸ 108 家公司中 107 家為空殼']
+    ]},
+    angels: { title:'使徒情報', perm:4, rows:[
+      ['第3使徒', '水天使 ▸ 自爆 ▸ 初號機擊破'],
+      ['第5使徒', '雷天使 ▸ 屋島作戰擊破'],
+      ['第11使徒', 'IREUL ▸ 系統侵蝕 ▸ MAGI 自淨'],
+      ['第14使徒', '力天使 ▸ 暴走初號機吞噬'],
+      ['第17使徒', '渚薰 ▸ 自由意志 ▸ 被真嗣殺死']
+    ]}
+  };
+  var TABS = [
+    ['overview', '总览'], ['episodes', '剧情'], ['pilots', '适格者'],
+    ['organizations', '机构'], ['angels', '使徒']
+  ];
+  var cur = 'overview';
+  var stage = null;
+
+  function loadPerm(){
+    try { var v = parseInt(localStorage.getItem(PERM_KEY), 10); if (!isNaN(v)){ perm = v; } } catch (e) {}
+    if (perm >= 3){ authed = true; }
+  }
+  function savePerm(){ try { localStorage.setItem(PERM_KEY, String(perm)); } catch (e) {} }
+  function syncStatus(){ /* 不动状态栏，权限只在 APP 内展示 */ }
+
+  function authScreen(){
+    stop = true;
+    stage.innerHTML =
+      '<div class="nbAuth"><canvas id="nbAuthCv" width="820" height="640"></canvas>' +
+      '<div class="nbLog" id="nbLog"></div>' +
+      '<div class="btnrow"><button class="mainbtn" id="nbScan">開始面部掃描 ▸ FACE SCAN</button></div>' +
+      '<div class="avhint" style="text-align:center">MAGI RETINA·FACE·VEIN 三重認証 ▸ 掃描通過後自動進入</div></div>';
+    runAuth();
+  }
+  function runAuth(){
+    var cvs = document.getElementById('nbAuthCv');
+    var m = cvs.getContext('2d');
+    var logEl = document.getElementById('nbLog');
+    var btn = document.getElementById('nbScan');
+    var W2 = 820, H2 = 640;
+    var phase = 'idle', t0 = 0, fired = 0, entered = false;
+    stop = false;
+    var LOCKS = [[330, 265, 'EYE-L'], [490, 265, 'EYE-R'], [410, 345, 'NOSE'], [410, 392, 'MOUTH'], [410, 116, 'CRN']];
+    var STEPS = [
+      [300, 'MAGI 認証起動 ▸ <span class="ok">OK</span>'],
+      [900, '網膜掃描 ▸ <span class="ok">通過</span>'],
+      [1500, '靜脈紋路 ▸ <span class="ok">通過</span>'],
+      [1950, '面部特徵比對 ▸ <span class="ok">通過</span>']
+    ];
+    function log(h){
+      var d = document.createElement('div');
+      d.innerHTML = h;
+      logEl.appendChild(d);
+      while (logEl.childNodes.length > 4){ logEl.removeChild(logEl.firstChild); }
+    }
+    function wire(rev){
+      m.save();
+      m.beginPath(); m.rect(0, 0, W2, H2 * rev); m.clip();
+      m.strokeStyle = 'rgba(51,255,102,.9)'; m.lineWidth = 3; m.setLineDash([10, 7]);
+      m.beginPath(); m.ellipse(410, 320, 158, 244, 0, 0, Math.PI * 2); m.stroke();
+      m.beginPath();
+      m.moveTo(300, 228); m.lineTo(362, 240);
+      m.moveTo(458, 240); m.lineTo(520, 228);
+      m.moveTo(410, 282); m.lineTo(410, 345);
+      m.moveTo(364, 392); m.lineTo(456, 392);
+      m.stroke();
+      m.setLineDash([]);
+      [[330, 265], [490, 265]].forEach(function(e){
+        m.beginPath(); m.arc(e[0], e[1], 9, 0, Math.PI * 2); m.stroke();
+      });
+      m.restore();
+      LOCKS.forEach(function(L, i){
+        if (rev * 5 >= i + 1){
+          m.strokeStyle = C.green; m.lineWidth = 2;
+          m.beginPath();
+          m.moveTo(L[0] - 16, L[1]); m.lineTo(L[0] + 16, L[1]);
+          m.moveTo(L[0], L[1] - 16); m.lineTo(L[0], L[1] + 16);
+          m.stroke();
+          m.fillStyle = C.green; m.font = mono(16, '700');
+          m.fillText(L[2], L[0] + 22, L[1] - 10);
+        }
+      });
+    }
+    function frame(now){
+      if (stop){ return; }
+      m.fillStyle = '#0A0303'; m.fillRect(0, 0, W2, H2);
+      m.strokeStyle = 'rgba(51,255,102,.14)'; m.lineWidth = 1;
+      var i;
+      for (i = 0; i <= W2; i += 56){ m.beginPath(); m.moveTo(i, 0); m.lineTo(i, H2); m.stroke(); }
+      for (i = 0; i <= H2; i += 56){ m.beginPath(); m.moveTo(0, i); m.lineTo(W2, i); m.stroke(); }
+      if (phase === 'idle'){
+        m.fillStyle = 'rgba(150,150,150,.9)'; m.font = mono(22);
+        m.textAlign = 'center'; m.textBaseline = 'middle';
+        m.fillText('▸ STANDBY ▸ 待機中', W2 / 2, H2 / 2);
+        m.textAlign = 'left';
+      } else if (phase === 'scanning'){
+        var prog = Math.min(1, (Date.now() - t0) / 2100);
+        wire(prog);
+        var y = (now % 1500) / 1500 * H2;
+        var g = m.createLinearGradient(0, y - 60, 0, y + 60);
+        g.addColorStop(0, 'rgba(51,255,102,0)');
+        g.addColorStop(.5, 'rgba(51,255,102,.22)');
+        g.addColorStop(1, 'rgba(51,255,102,0)');
+        m.fillStyle = g; m.fillRect(0, y - 60, W2, 120);
+        m.fillStyle = '#222'; m.fillRect(60, H2 - 40, W2 - 120, 10);
+        m.fillStyle = C.green; m.fillRect(60, H2 - 40, (W2 - 120) * prog, 10);
+        if (prog >= 1 && !entered){
+          entered = true;
+          phase = 'ok';
+          log('特徵鎖定 5/5 ▸ <span class="ok">完成</span>');
+          log('<span class="ok">✓ ACCESS GRANTED ▸ L3</span>');
+          setTimeout(function(){
+            authed = true;
+            perm = Math.max(perm, 3);
+            savePerm(); syncStatus();
+            stop = true;
+            mainScreen();
+            SFX.grant();
+            toast('✓ 認証完成 ▸ 歡迎回來，適格者');
+          }, 1200);
+        }
+      } else if (phase === 'ok'){
+        wire(1);
+        m.strokeStyle = C.green; m.lineWidth = 5; m.strokeRect(120, 70, 580, 500);
+        m.fillStyle = C.green; m.font = mono(40, '700');
+        m.textAlign = 'center'; m.textBaseline = 'middle';
+        if (Math.floor(now / 400) % 2){ m.fillText('✓ IDENTITY CONFIRMED', W2 / 2, 300); }
+        m.font = mono(24);
+        m.fillText('歡迎回來 ▸ 適格者', W2 / 2, 370);
+        m.textAlign = 'left';
+      }
+      rafId = requestAnimationFrame(frame);
+    }
+    cancelAnimationFrame(rafId);
+    rafId = requestAnimationFrame(frame);
+    btn.addEventListener('click', function(){
+      if (phase === 'scanning'){ return; }
+      phase = 'scanning'; t0 = Date.now(); fired = 0;
+      logEl.innerHTML = '';
+      btn.disabled = true; btn.textContent = '掃描中…';
+      log('面部掃描開始 ▸ 請正對畫面');
+      SFX.scan();
+      var iv = setInterval(function(){
+        if (stop || phase !== 'scanning'){ clearInterval(iv); return; }
+        var el2 = Date.now() - t0;
+        while (fired < STEPS.length && el2 >= STEPS[fired][0]){ log(STEPS[fired][1]); fired++; }
+      }, 100);
+    });
+  }
+
+  function mainScreen(){
+    var h = '<div class="chips" id="nbTabs">';
+    TABS.forEach(function(t, i){
+      h += '<button class="chip' + (i === 0 ? ' active' : '') + '" data-t="' + t[0] + '">' + t[1] + '</button>';
+    });
+    h += '</div><div id="nbBody"></div>';
+    stage.innerHTML = h;
+    stage.querySelectorAll('#nbTabs .chip').forEach(function(c){
+      c.addEventListener('click', function(){
+        cur = c.getAttribute('data-t');
+        stage.querySelectorAll('#nbTabs .chip').forEach(function(x){ x.classList.remove('active'); });
+        c.classList.add('active');
+        renderTab();
+      });
+    });
+    renderTab();
+  }
+  function renderTab(){
+    var d = DATA[cur];
+    var h = '<div class="nbSec"><span>' + d.title + '</span><span class="lv">L' + d.perm + '</span></div>';
+    if (perm >= d.perm){
+      d.rows.forEach(function(r){ h += '<div class="nbRow"><b>' + r[0] + '</b>' + r[1] + '</div>'; });
+    } else {
+      d.rows.slice(0, 2).forEach(function(r){
+        h += '<div class="nbRow mask"><b>' + r[0] + '</b>████████（需 L' + d.perm + '）</div>';
+      });
+      h += '<div class="nbLock">▣ 權限不足 ▸ 需 L' + d.perm + '<br>' +
+           '<span style="color:#6E6E6E;font-size:10px">提示 ▸ 第2適格者的名</span><br>' +
+           '<input type="password" id="nbPwd" maxlength="10" placeholder="INPUT"><button id="nbOk">解鎖</button></div>';
+    }
+    document.getElementById('nbBody').innerHTML = h;
+    var ok = document.getElementById('nbOk');
+    if (ok){
+      ok.addEventListener('click', function(){
+        var v = (document.getElementById('nbPwd').value || '').replace(/\s+/g, '').toUpperCase();
+        if (v === 'ASUKA'){
+          perm = Math.max(perm, d.perm);
+          savePerm(); syncStatus();
+          SFX.grant();
+          toast('✓ ACCESS GRANTED ▸ L' + perm);
+          renderTab();
+        } else {
+          toast('✕ ACCESS DENIED');
+          SFX.deny();
+          document.getElementById('nbPwd').value = '';
+        }
+      });
+    }
+  }
+  return {
+    activate: function(){
+      stage = document.getElementById('nbStage');
+      loadPerm(); syncStatus();
+      if (authed){ mainScreen(); } else { authScreen(); }
+    },
+    tick: function(){}
+  };
+})();
+
+/* ================================================================
+   终端调度：桌面 ⇄ APP
+   ================================================================ */
+var currentApp = null;
+function openApp(id){
+  SFX.click();
+  document.getElementById('desktop').style.display = 'none';
+  document.getElementById('appview').style.display = 'block';
+  var panels = document.querySelectorAll('.panel');
+  var j;
+  for (j = 0; j < panels.length; j++){ panels[j].classList.remove('on'); }
+  document.getElementById('panel-' + id).classList.add('on');
+  currentApp = (id === 'alert') ? alertApp :
+               (id === 'magi') ? magiApp :
+               (id === 'license') ? licenseApp :
+               (id === 'atfield') ? atfieldApp :
+               (id === 'emergency') ? emergencyApp :
+               (id === 'mart') ? martApp :
+               (id === 'map') ? mapApp :
+               (id === 'notebook') ? notebookApp : titleApp;
+  document.body.classList.toggle('v2', id === 'map' || id === 'notebook');
+  currentApp.activate();
+  window.scrollTo(0, 0);
+}
+function goHome(){
+  SFX.sirenStop();
+  document.getElementById('appview').style.display = 'none';
+  document.getElementById('desktop').style.display = 'block';
+  currentApp = null;
+  window.scrollTo(0, 0);
+}
+(function(){
+  var icons = document.querySelectorAll('#iconGrid .aicon');
+  var i;
+  for (i = 0; i < icons.length; i++){
+    (function(btn){
+      btn.addEventListener('click', function(){ openApp(btn.getAttribute('data-app')); });
+    })(icons[i]);
+  }
+  document.getElementById('homeBtn').addEventListener('click', goHome);
+})();
+function loop(){
+  if (currentApp && !busy && !document.hidden){ currentApp.tick(Date.now()); }
+  requestAnimationFrame(loop);
+}
+
+/* ================================================================
+   开机两段式：① 终端日志（v1.7 风格加大字号）→ ② 门禁卡+假识别
+   彩蛋：~10% 概率识别不通过 → 警告页 → 重试必过
+   [预留位] bootBgImg：localStorage 有真图时替换手绘卡面
+   ================================================================ */
+(function(){
+  var bootEl = document.getElementById('boot');
+  var linesEl = document.getElementById('bootLines');
+  var stage2 = document.getElementById('bootStage2');
+  var scanEl = document.getElementById('bootScan');
+  var confirmBtn = document.getElementById('bootConfirm');
+  var denyEl = document.getElementById('bootDeny');
+  var retryBtn = document.getElementById('bootRetry');
+  var timers = [];
+  function later(fn, ms){ timers.push(setTimeout(fn, ms)); }
+  function clearTimers(){ timers.forEach(clearTimeout); timers = []; }
+  function put(el, html){ var d = document.createElement('div'); d.innerHTML = html; el.appendChild(d); }
+  function finishBoot(){
+    if (bootEl.classList.contains('off')){ return; }
+    clearTimers();
+    bootEl.classList.add('off');
+    setTimeout(function(){ bootEl.style.display = 'none'; }, 650);
+  }
+  bootEl.addEventListener('click', function(e){
+    if (e.target === confirmBtn || e.target === retryBtn){ return; }
+    finishBoot();
+  });
+
+  /* ---- 问候语（与状态栏对齐） ---- */
+  var greet = (function(){
+    var h = new Date().getHours();
+    return (h >= 5 && h < 11) ? 'おはよう ▸ 早安！'
+         : (h >= 11 && h < 18) ? 'こんにちは ▸ 午安！'
+         : 'こんばんは ▸ 晚安！';
+  })();
+
+  /* ---- 阶段① 终端日志 ---- */
+  var LOG = [
+    'NERV OS v1.7 起動 …… <span class="ok">通过</span>',
+    'MAGI SYSTEM BOOT ▸ MELCHIOR·BALTHASAR·CASPER …… <span class="ok">通过</span>',
+    'A.T. FIELD 一括展開準備 …… <span class="ok">通过</span>',
+    'LCL 系統加压检查 …… <span class="ok">通过</span>',
+    'エントリープラグ 接入许可 …… <span class="ok">通过</span>',
+    '马尔杜克机关档案 读取 …… <span class="ok">通过</span>',
+    '第3新東京市 防衛網 同期 …… <span class="ok">通过</span>',
+    '適格者認証モジュール 立ち上がり …… <span class="ok">通过</span>',
+    'SYSTEM READY ▸ 门禁待机'
+  ];
+  var t = 0;
+  LOG.forEach(function(line, i){
+    later(function(){ put(linesEl, line); SFX.beep(); }, t);
+    t += (i === LOG.length - 1) ? 300 : 200;
+  });
+  later(function(){
+    linesEl.style.display = 'none';
+    stage2.classList.add('on');
+    drawCard();
+    SFX.scan();
+    runScan(false);
+  }, t + 400);
+
+  /* ---- 阶段② 假识别序列 + 彩蛋拦截 ---- */
+  var QUOTES = [
+    '「使徒、襲来」',
+    '「逃げちゃダメだ ▸ 不能逃避」',
+    '「シンクロ率 400% ▸ 同步率 400%」',
+    '「エヴァ発進！ ▸ EVA 出击」',
+    '「PATTERN：BLUE ▸ A.T. FIELD 展開」',
+    '「GOD\'S IN HIS HEAVEN. ALL\'S RIGHT WITH THE WORLD.」',
+    '「心の壁 ▸ 人类补完计划 待机中」',
+    '「第3新東京市 非常事態」'
+  ];
+  var FAILS = parseInt((function(){ try{ return localStorage.getItem('nervBootFails'); }catch(e){ return null; } })()||'0',10)||0;
+  function saveFails(){ try{ localStorage.setItem('nervBootFails',FAILS+''); }catch(e){} }
+  function denyLines(){
+    if(FAILS>=3){ return '冬月：「源堂啊……又是你儿子在乱按门禁。」<br>再失败一次 ▸ MAGI 将直接放行（它累了）'; }
+    if(FAILS===2){ return '检测到未登记适格者 ▸ 已记录第 '+FAILS+' 次尝试<br>赤木博士表示 ▸ 数据库里没有这张脸'; }
+    return '检测到未登记适格者<br>A.T. FIELD 已展开 ▸ 请求重新认证';
+  }
+  var failsAtPass = 0;
+  function hiddenReceipt(){
+    var d=document.createElement('div');
+    d.style.cssText='margin-top:14px;background:#f5f2e8;color:#222;padding:14px 16px;font-family:Courier New,monospace;font-size:11px;line-height:1.9;text-align:left;border-radius:4px;max-width:400px;width:100%';
+    d.innerHTML='<div style="text-align:center;letter-spacing:.2em;border-bottom:1px dashed #999;padding-bottom:6px;margin-bottom:8px;font-weight:700">NERV 隐藏票据 ▸ MAGI特批</div>'+
+      '認証狀態 ▸ 強制放行（累計失敗 '+failsAtPass+' 次）<br>審批人 ▸ CASPER·3（难得心情好）<br>'+
+      '備註 ▸ 冬月副司令批示 ▸ 让他进来吧，吵死了<br>'+
+      '贈品 ▸ 「逃げちゃダメだ」体验券 ×1<br>'+
+      '<div style="border-top:1px dashed #999;margin-top:8px;padding-top:6px;color:#a33">本票据不可兑换商品 ▸ Keep out of reach of Angels.</div>';
+    scanEl.appendChild(d);
+  }
+  function runScan(isRetry){
+    scanEl.innerHTML = '';
+    confirmBtn.classList.remove('ready');
+    confirmBtn.style.display = 'none';
+    denyEl.classList.remove('on');
+    var autoPass = FAILS >= 4;
+    var pass = autoPass || isRetry || Math.random() > 0.1;
+    var seq = [
+      ['MAGI SYSTEM 认证 …… <span class="ok">通过</span>', 400],
+      ['RETINAL SCAN 视网膜 …… <span class="ok">通过</span>', 400],
+      ['適格者番号 核对 …… <span class="ok">通过</span>', 400],
+      ['面部识别中……', 650]
+    ];
+    var st = 0;
+    seq.forEach(function(it, idx){
+      later(function(){
+        put(scanEl, it[0]);
+        if(idx === 3){ SFX.scan(); } else { SFX.beep(); }
+      }, st);
+      st += it[1];
+    });
+    if (pass){
+      later(function(){
+        scanEl.lastChild.innerHTML = '面部识别中…… <span class="ok">通过</span>' + (autoPass ? ' <span class="ok">▸ 多次失败，MAGI強制放行</span>' : '');
+        later(function(){
+          put(scanEl, '────────────────────────');
+          put(scanEl, '<span class="ok">' + greet + '</span>');
+          put(scanEl, '泛人形兵器驾驶员 ▸ 欢迎回来');
+          SFX.grant();
+          failsAtPass = FAILS;
+          FAILS = 0; saveFails();
+          later(function(){
+            if (autoPass){ hiddenReceipt(); SFX.print(); }
+            put(scanEl, '<span class="quote">' + QUOTES[Math.floor(Math.random() * QUOTES.length)] + '</span>');
+            confirmBtn.style.display = 'block';
+            later(function(){ confirmBtn.classList.add('ready'); }, 120);
+          }, 380);
+        }, 260);
+      }, st + 220);
+    } else {
+      FAILS++; saveFails();
+      later(function(){
+        scanEl.lastChild.innerHTML = '面部识别中…… <span class="bad">✕ 未通过</span>';
+        SFX.deny();
+        bootEl.classList.add('shake');
+        var ds = document.getElementById('denySub');
+        var dc = document.getElementById('denyCond');
+        if (ds){ ds.innerHTML = denyLines(); }
+        if (dc){ dc.textContent = 'CONDITION : RED ▸ FAIL ×' + FAILS; }
+        later(function(){
+          bootEl.classList.remove('shake');
+          stage2.classList.remove('on');
+          denyEl.classList.add('on');
+        }, 500);
+      }, st + 300);
+    }
+  }
+  confirmBtn.addEventListener('click', function(){
+    if (confirmBtn.classList.contains('ready')){ finishBoot(); }
+  });
+  retryBtn.addEventListener('click', function(e){
+    e.stopPropagation();
+    denyEl.classList.remove('on');
+    stage2.classList.add('on');
+    runScan(true);
+  });
+
+  /* ---- 手绘门禁卡（1080×1400 竖卡） ---- */
+  var bc = document.getElementById('bootCv');
+  var b = bc.getContext('2d');
+  var RED = '#B3261E';
+  function serif(s, w){ return (w || '700') + ' ' + s + 'px "Times New Roman","Georgia",serif'; }
+  function leaf(x, y, s){
+    b.save(); b.translate(x, y); b.scale(s, s);
+    b.fillStyle = RED;
+    b.beginPath();
+    b.moveTo(-0.55, -0.35);
+    b.bezierCurveTo(-0.7, -1.0, 0.1, -1.15, 0.35, -0.95);
+    b.bezierCurveTo(0.55, -1.05, 0.8, -0.9, 0.78, -0.7);
+    b.bezierCurveTo(1.05, -0.65, 1.05, -0.35, 0.8, -0.3);
+    b.bezierCurveTo(1.0, -0.05, 0.95, 0.25, 0.7, 0.3);
+    b.bezierCurveTo(0.85, 0.6, 0.5, 0.95, 0.15, 0.85);
+    b.bezierCurveTo(-0.2, 0.7, -0.5, 0.2, -0.55, -0.35);
+    b.closePath(); b.fill();
+    b.beginPath();
+    b.moveTo(-0.02, 0.8); b.lineTo(0.14, 0.76); b.lineTo(0.04, 1.18);
+    b.closePath(); b.fill();
+    b.restore();
+  }
+  function arcText(str, cx, cy, r, a0, a1){
+    b.save(); b.fillStyle = RED; b.font = serif(Math.max(11, r * 0.065));
+    b.textAlign = 'center'; b.textBaseline = 'middle';
+    var n = str.length, i;
+    for (i = 0; i < n; i++){
+      var a = a0 + (a1 - a0) * (i / (n - 1));
+      b.save();
+      b.translate(cx + Math.cos(a) * r, cy + Math.sin(a) * r);
+      b.rotate(a - Math.PI / 2);
+      b.fillText(str.charAt(i), 0, 0);
+      b.restore();
+    }
+    b.restore();
+  }
+  function hazard(y){
+    b.save();
+    b.fillStyle = '#0A0303'; b.fillRect(0, y, 1080, 40);
+    b.beginPath(); b.rect(0, y, 1080, 40); b.clip();
+    b.fillStyle = RED;
+    for (var x0 = -60; x0 < 1160; x0 += 76){
+      b.beginPath();
+      b.moveTo(x0, y + 40); b.lineTo(x0 + 30, y);
+      b.lineTo(x0 + 62, y); b.lineTo(x0 + 32, y + 40);
+      b.closePath(); b.fill();
+    }
+    b.restore();
+  }
+  function drawCard(){
+    b.fillStyle = '#0A0303'; b.fillRect(0, 0, 1080, 1150);
+    var g1 = b.createRadialGradient(0, 0, 0, 0, 0, 900);
+    g1.addColorStop(0, 'rgba(120,20,12,0.55)'); g1.addColorStop(1, 'rgba(0,0,0,0)');
+    b.fillStyle = g1; b.fillRect(0, 0, 1080, 1150);
+    b.textAlign = 'center'; b.textBaseline = 'middle';
+    var ES = 0.568, EW = 863.21 * ES, EX = 540 - EW / 2, EY = 58;
+    drawEmblem(b, EX + EW / 2, EY + 808.96 * ES / 2, EW, RED);
+    arcText("GOD'S IN HIS HEAVEN. ALL'S RIGHT WITH THE WORLD.",
+            EX + 518.1 * ES, EY + 463.2 * ES, 513.5 * ES,
+            Math.PI / 2 + 0.8493, Math.PI / 2 - 0.7646);
+    hazard(640);
+    b.fillStyle = RED;
+    b.font = serif(132, '700');
+    b.fillText('NERV ONLY', 540, 775);
+    b.font = serif(40);
+    b.fillText('AUTHORIZED PERSONNEL ONLY', 540, 842);
+    b.font = serif(96, '700');
+    b.fillText('關係以外使用禁止', 540, 940);
+    hazard(1040);
+    b.fillStyle = 'rgba(255,255,255,0.5)';
+    b.font = '22px "Courier New",monospace';
+    b.fillText('MAGI SYSTEM AUTHORIZING…', 540, 1108);
+  }
+  /* [预留位] bootBgImg：有真图时替换手绘卡面 */
+  try {
+    var bootBg = localStorage.getItem('bootBgImg');
+    if (bootBg){
+      var bimg = new Image();
+      bimg.onload = function(){
+        var sc = Math.max(1080 / bimg.width, 1150 / bimg.height);
+        var dw = bimg.width * sc, dh = bimg.height * sc;
+        b.fillStyle = '#000'; b.fillRect(0, 0, 1080, 1150);
+        b.drawImage(bimg, (1080 - dw) / 2, (1150 - dh) / 2, dw, dh);
+      };
+      bimg.src = bootBg;
+    }
+  } catch (e) {}
+})();
+
+/* [预留位] deskBgImg 管线：有真图就注入桌面 img 并盖过 CSS 渐变 */
+(function(){
+  try {
+    var deskBg = localStorage.getItem('deskBgImg');
+    if (deskBg){
+      var dimg = document.getElementById('deskBg');
+      dimg.src = deskBg;
+      dimg.style.display = 'block';
+    }
+  } catch (e) {}
+})();
+
+/* ============ 启动 ============ */
+loop();
+if (document.fonts && document.fonts.load){
+  var sample = '使徒警报非常事態警報週末補班正常判定多数决可行不可再议第三新東京市標題字卡使徒襲来話作戦続行中止精査必要適格者絫波麗明日香碇真嗣鈴原東治渚薫零号機初号機弐号機参号機通行証個人証明身分証明証同効率血型起動突撃揃合試験自由通常展開覚醒模式力場壁紙活動限界内部外部主電源供給新機軸角度尺超越系統警示雨題証場占警襲心之壁使徒来新世紀エヴァンゲリオンUNITASSIGNPHOTOLICNOISSUEVALIDNERVUNNERVIDCARDGODINHISHEAVENALLSRIGHTWITHTHEWORLDCOMUNIDADNEONGENEISEVANGELIONATFIELDORANGEBLUEPATTERNEMERGENCYSTOPSLOWNORMALRACINGMONITOREDTARGETSUBJECTASSIGNEDPILOTACTIVE TIMEREMAININGINTERNALEXTERNALNEONNEOGENESISEVANGELOLOVEDETOKYOイカリシンジアヤナミレイアスカラングレスズハラトウジナギサカヲルお早う今晩は良好者認証失敗検出未登録展開請求再面部識別通過未歡迎來';
+  document.fonts.load('800 100px "Shippori Mincho"', sample)['catch'](function(){});
+  document.fonts.load('900 100px "Noto Serif SC"', sample)['catch'](function(){});
+}
+})();
+</script>
+</body>
+</html>
